@@ -1,0 +1,279 @@
+import React, { useState, useEffect } from 'react';
+import { Game, AppSettings, ShortcutItem } from './types';
+import {
+  getStoredGames,
+  saveStoredGames,
+  getStoredSettings,
+  saveStoredSettings,
+  getStoredShortcuts,
+  saveStoredShortcuts,
+  saveFavoriteIds,
+} from './utils/storage';
+import { applyTabCloak, triggerPanic } from './utils/cloak';
+import { applyTheme } from './utils/theme';
+import { INITIAL_GAMES } from './data/initialData';
+import { LucideSidebar } from './components/LucideSidebar';
+import { LucideHomeView } from './components/LucideHomeView';
+import { LucideGamesView } from './components/LucideGamesView';
+import { LucideAiView } from './components/LucideAiView';
+import { LucideSettingsView } from './components/LucideSettingsView';
+import { LucideAccountModal } from './components/LucideAccountModal';
+import { LucideAddShortcutModal } from './components/LucideAddShortcutModal';
+import { ProxyBrowser } from './components/ProxyBrowser';
+import { GamePlayerModal } from './components/GamePlayerModal';
+import { AddGameModal } from './components/AddGameModal';
+import { CheckCircle2, X } from 'lucide-react';
+
+export type LucideView = 'home' | 'proxy' | 'ai' | 'games' | 'settings';
+
+export default function App() {
+  // Navigation View State
+  const [activeView, setActiveView] = useState<LucideView>('home');
+  const [browserInitialUrl, setBrowserInitialUrl] = useState<string>('');
+
+  // Persistent storage state
+  const [games, setGames] = useState<Game[]>(getStoredGames);
+  const [settings, setSettings] = useState<AppSettings>(getStoredSettings);
+  const [shortcuts, setShortcuts] = useState<ShortcutItem[]>(getStoredShortcuts);
+
+  // Modals state
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [isAddShortcutModalOpen, setIsAddShortcutModalOpen] = useState(false);
+  const [isAddGameModalOpen, setIsAddGameModalOpen] = useState(false);
+  const [activeGameToPlay, setActiveGameToPlay] = useState<Game | null>(null);
+
+  // Toast notification
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3000);
+  };
+
+  // Apply theme dynamically to CSS variables whenever setting changes
+  useEffect(() => {
+    applyTheme(settings.theme);
+  }, [settings.theme]);
+
+  // Apply tab disguise whenever activeCloak or custom settings change
+  useEffect(() => {
+    applyTabCloak(
+      settings.activeCloak,
+      settings.customCloakTitle,
+      settings.customCloakFavicon
+    );
+  }, [settings.activeCloak, settings.customCloakTitle, settings.customCloakFavicon]);
+
+  // Global keydown listener for Panic hotkey
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const isInput =
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable;
+
+      // Panic Key Trigger
+      if (e.key === settings.panicKey && !isInput) {
+        e.preventDefault();
+        triggerPanic(settings.panicUrl);
+        return;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [settings.panicKey, settings.panicUrl]);
+
+  // Handle Search or URL navigation from Home Omnibar
+  const handleHomeSearchOrNavigate = (queryOrUrl: string) => {
+    setBrowserInitialUrl(queryOrUrl);
+    setActiveView('proxy');
+  };
+
+  // Handle shortcut click from sidebar
+  const handleShortcutClick = (shortcut: ShortcutItem) => {
+    setBrowserInitialUrl(shortcut.url);
+    setActiveView('proxy');
+  };
+
+  // Add custom shortcut
+  const handleAddShortcut = (newShortcut: ShortcutItem) => {
+    const updated = [...shortcuts, newShortcut];
+    setShortcuts(updated);
+    saveStoredShortcuts(updated);
+    showToast(`Added "${newShortcut.name}" to sidebar shortcuts`);
+  };
+
+  // Game management actions
+  const handleAddGame = (newGame: Game) => {
+    const updated = [{ ...newGame, isCustom: true }, ...games];
+    setGames(updated);
+    saveStoredGames(updated);
+    showToast(`Added "${newGame.title}" to library`);
+  };
+
+  const handleDeleteGame = (gameId: string) => {
+    const target = games.find((g) => g.id === gameId);
+    const updated = games.filter((g) => g.id !== gameId);
+    setGames(updated);
+    saveStoredGames(updated);
+    showToast(`Removed "${target?.title || 'game'}"`);
+  };
+
+  const handleToggleFavorite = (gameId: string) => {
+    const updated = games.map((g) =>
+      g.id === gameId ? { ...g, isFavorite: !g.isFavorite } : g
+    );
+    setGames(updated);
+    saveStoredGames(updated);
+    const favIds = updated.filter((g) => g.isFavorite).map((g) => g.id);
+    saveFavoriteIds(favIds);
+  };
+
+  const handleRecordPlay = (gameId: string) => {
+    const updated = games.map((g) =>
+      g.id === gameId ? { ...g, plays: (g.plays || 0) + 1 } : g
+    );
+    setGames(updated);
+    saveStoredGames(updated);
+  };
+
+  const handleImportGames = (imported: Game[]) => {
+    const combined = [...imported, ...games];
+    const unique = Array.from(new Map(combined.map((g) => [g.id, g])).values());
+    setGames(unique);
+    saveStoredGames(unique);
+    showToast(`Imported ${imported.length} games`);
+  };
+
+  const handleClearGames = () => {
+    setGames([]);
+    saveStoredGames([]);
+    showToast('Library cleared');
+  };
+
+  const handleResetLibraryDefaults = () => {
+    setGames(INITIAL_GAMES);
+    saveStoredGames(INITIAL_GAMES);
+    showToast('Reset library to 559 games');
+  };
+
+  // Settings update
+  const handleUpdateSettings = (newSettings: AppSettings) => {
+    setSettings(newSettings);
+    saveStoredSettings(newSettings);
+    showToast('Settings saved');
+  };
+
+  return (
+    <div className="h-screen w-screen overflow-hidden flex bg-[var(--bg-base)] text-[var(--text-main)] font-sans selection:bg-purple-500/30 selection:text-purple-200">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] text-xs font-semibold text-[var(--text-main)] shadow-2xl animate-fade-in">
+          <CheckCircle2 className="w-4 h-4 text-[var(--accent-color)] shrink-0" />
+          <span>{toastMessage}</span>
+          <button
+            onClick={() => setToastMessage(null)}
+            className="text-[var(--text-dim)] hover:text-[var(--text-main)] p-0.5 ml-1"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      )}
+
+      {/* Left Sidebar */}
+      <LucideSidebar
+        activeView={activeView}
+        onSelectView={(v) => {
+          if (v === 'home') {
+            setBrowserInitialUrl('');
+          }
+          setActiveView(v);
+        }}
+        shortcuts={shortcuts}
+        onShortcutClick={handleShortcutClick}
+        onOpenAddShortcut={() => setIsAddShortcutModalOpen(true)}
+        onOpenAccount={() => setIsAccountModalOpen(true)}
+        onOpenSettings={() => setActiveView('settings')}
+      />
+
+      {/* Center Main Stage View */}
+      <div className="flex-1 h-screen overflow-hidden flex flex-col relative min-w-0">
+        {/* 1. Home View */}
+        {activeView === 'home' && (
+          <LucideHomeView onSearchOrNavigate={handleHomeSearchOrNavigate} />
+        )}
+
+        {/* 2. Web Proxy & Browser View */}
+        {activeView === 'proxy' && (
+          <ProxyBrowser
+            initialUrl={browserInitialUrl}
+            searchEngine={settings.defaultSearchEngine}
+            onClose={() => {
+              setActiveView('home');
+              setBrowserInitialUrl('');
+            }}
+          />
+        )}
+
+        {/* 3. Games Library View (559 Games) */}
+        {activeView === 'games' && (
+          <LucideGamesView
+            games={games}
+            onPlayGame={(g) => setActiveGameToPlay(g)}
+            onOpenAddGame={() => setIsAddGameModalOpen(true)}
+            onToggleFavorite={handleToggleFavorite}
+            onDeleteGame={handleDeleteGame}
+          />
+        )}
+
+        {/* 4. AI Assistant View (Gemini AI) */}
+        {activeView === 'ai' && <LucideAiView settings={settings} />}
+
+        {/* 5. Settings Page */}
+        {activeView === 'settings' && (
+          <LucideSettingsView
+            settings={settings}
+            onUpdateSettings={handleUpdateSettings}
+            games={games}
+            onImportGames={handleImportGames}
+            onClearGames={handleClearGames}
+            onResetLibraryDefaults={handleResetLibraryDefaults}
+          />
+        )}
+      </div>
+
+      {/* Modals */}
+      <LucideAccountModal
+        isOpen={isAccountModalOpen}
+        onClose={() => setIsAccountModalOpen(false)}
+        settings={settings}
+        gamesCount={games.length}
+      />
+
+      <LucideAddShortcutModal
+        isOpen={isAddShortcutModalOpen}
+        onClose={() => setIsAddShortcutModalOpen(false)}
+        onAddShortcut={handleAddShortcut}
+      />
+
+      <AddGameModal
+        isOpen={isAddGameModalOpen}
+        onClose={() => setIsAddGameModalOpen(false)}
+        onAddGame={handleAddGame}
+      />
+
+      {activeGameToPlay && (
+        <GamePlayerModal
+          game={activeGameToPlay}
+          onClose={() => setActiveGameToPlay(null)}
+          onToggleFavorite={handleToggleFavorite}
+          onRecordPlay={handleRecordPlay}
+        />
+      )}
+    </div>
+  );
+}
