@@ -70,7 +70,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   proxyEngineMode: 'direct',
   aiTemperature: 0.7,
   aiSystemInstructions: 'You are grrmondays AI, a sharp, helpful, concise assistant.',
-  aiCustomApiKey: '',
+  aiCustomApiKey: 'sk-navy-lZ4HVhr_FVvz9cmg1S4M5VjqxhknLWHPwezTNYssxlg',
 };
 
 export const INITIAL_GAMES: Game[] = gamesData as Game[];

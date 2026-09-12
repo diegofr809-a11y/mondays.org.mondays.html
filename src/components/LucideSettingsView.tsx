@@ -351,24 +351,43 @@ export const LucideSettingsView: React.FC<LucideSettingsViewProps> = ({
               />
             </div>
 
-            {/* Custom Gemini API Key (Optional) */}
+            {/* Custom AI API Key (Navy AI / Google Gemini) */}
             <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-2">
-              <div className="flex items-center gap-2">
-                <Key className="w-4 h-4 text-[var(--accent-color)]" />
-                <h4 className="text-xs font-bold text-[var(--text-main)]">
-                  Custom Gemini API Key (Optional)
-                </h4>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Key className="w-4 h-4 text-[var(--accent-color)]" />
+                  <h4 className="text-xs font-bold text-[var(--text-main)]">
+                    AI API Key Configuration
+                  </h4>
+                </div>
+                {settings.aiCustomApiKey?.startsWith('sk-navy-') && (
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-[10px] font-semibold text-emerald-300">
+                    Navy AI Key Active
+                  </span>
+                )}
               </div>
               <p className="text-[11px] text-[var(--text-muted)]">
-                Leave empty to use default grrmondays AI capabilities, or provide your own Google AI Studio key for custom quota.
+                Supports Navy AI keys (<code className="font-mono text-purple-300">sk-navy-...</code>) and Google Gemini keys with automatic failover to guarantee 24/7 uptime.
               </p>
-              <input
-                type="password"
-                value={settings.aiCustomApiKey || ''}
-                onChange={(e) => handleUpdate('aiCustomApiKey', e.target.value)}
-                placeholder="AIzaSy..."
-                className="w-full h-9 px-3 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-color)] text-xs text-[var(--text-main)] placeholder-[var(--text-dim)] outline-none focus:border-[var(--accent-color)] transition-all font-mono"
-              />
+              <div className="space-y-1.5">
+                <input
+                  type="password"
+                  value={settings.aiCustomApiKey || ''}
+                  onChange={(e) => handleUpdate('aiCustomApiKey', e.target.value)}
+                  placeholder="sk-navy-... or AIzaSy..."
+                  className="w-full h-9 px-3 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-color)] text-xs text-[var(--text-main)] placeholder-[var(--text-dim)] outline-none focus:border-[var(--accent-color)] transition-all font-mono"
+                />
+                <div className="flex items-center justify-between text-[10px] text-[var(--text-dim)]">
+                  <span>Current key: {settings.aiCustomApiKey ? `${settings.aiCustomApiKey.slice(0, 10)}...${settings.aiCustomApiKey.slice(-4)}` : 'Default'}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleUpdate('aiCustomApiKey', 'sk-navy-lZ4HVhr_FVvz9cmg1S4M5VjqxhknLWHPwezTNYssxlg')}
+                    className="text-[var(--accent-color)] hover:underline font-semibold"
+                  >
+                    Reset to provided Navy AI Key
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

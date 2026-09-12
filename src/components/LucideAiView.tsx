@@ -26,7 +26,7 @@ const INITIAL_MESSAGES: Message[] = [
   {
     id: 'welcome',
     sender: 'ai',
-    text: "Hello! I am **grrmondays AI**, powered directly by **Google Gemini 3.8 Flash**. Ask me anything—from homework explanations, math problem solving, and writing essays to coding, gaming tips, or general curiosity.",
+    text: "Hello! I am **grrmondays AI**, powered by **Google Gemini & Navy AI**. Ask me anything—from homework explanations, math problem solving, and writing essays to coding, gaming tips, or general curiosity.",
     timestamp: 'Just now',
   },
 ];
@@ -184,9 +184,17 @@ export const LucideAiView: React.FC<LucideAiViewProps> = ({ settings }) => {
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-bold text-[var(--text-main)]">grrmondays AI</h2>
-              <span className="px-2 py-0.5 rounded-full bg-blue-500/20 border border-blue-500/30 text-[10px] font-semibold text-blue-300">
-                Google Gemini 3.8 Flash
-              </span>
+              {settings?.aiCustomApiKey?.startsWith('sk-navy-') ? (
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-[10px] font-semibold text-emerald-300 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Navy AI & Gemini Flash
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded-full bg-blue-500/20 border border-blue-500/30 text-[10px] font-semibold text-blue-300 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                  Google Gemini Flash
+                </span>
+              )}
             </div>
             <p className="text-[11px] text-[var(--text-muted)]">
               Real-time AI assistance for homework, coding, research, and answers

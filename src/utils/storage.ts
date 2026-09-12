@@ -82,7 +82,13 @@ export const saveFavoriteIds = (ids: string[]): void => {
 export const getStoredSettings = (): AppSettings => {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-    return raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : DEFAULT_SETTINGS;
+    if (!raw) return DEFAULT_SETTINGS;
+    const parsed = JSON.parse(raw);
+    return {
+      ...DEFAULT_SETTINGS,
+      ...parsed,
+      aiCustomApiKey: parsed.aiCustomApiKey?.trim() || DEFAULT_SETTINGS.aiCustomApiKey,
+    };
   } catch (err) {
     return DEFAULT_SETTINGS;
   }
