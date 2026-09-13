@@ -1,6 +1,6 @@
 {
   "name": "grrmondays",
-  "description": "grrmondays gaming hub, web browser, games library, and AI assistant with custom shortcuts and tab cloaking.",
+  "description": "grrmondays gaming hub, web browser, games library, and AI assistant with custom themes and stealth tab cloaking.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
