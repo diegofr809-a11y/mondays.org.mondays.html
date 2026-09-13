@@ -25,7 +25,7 @@ export const LucideSidebar = ({
           title="grrmondays Main"
         >
           <img
-            src="/image-removebg-preview.png"
+            src={`${import.meta.env.BASE_URL}image-removebg-preview.png`}
             alt="Ted Bear Logo"
             referrerPolicy="no-referrer"
             className="w-full h-full object-contain filter drop-shadow-xs"

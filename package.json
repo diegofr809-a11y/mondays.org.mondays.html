@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node server.js",
-    "build": "vite build && esbuild server.js --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "build": "vite build && node -e \"const fs=require('fs'); if(fs.existsSync('dist/index.html')) fs.copyFileSync('dist/index.html', 'dist/404.html');\" && esbuild server.js --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
     "lint": "node -e 'console.log(\"JavaScript syntax valid\")'"
   },

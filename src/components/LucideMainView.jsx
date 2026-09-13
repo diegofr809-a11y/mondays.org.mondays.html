@@ -90,7 +90,7 @@ export const LucideMainView = ({ onSelectView, gamesCount = 559 }) => {
           >
             <div className="relative w-64 h-64 sm:w-72 sm:h-72 bg-transparent flex items-center justify-center">
               <img
-                src="/image-removebg-preview.png"
+                src={`${import.meta.env.BASE_URL}image-removebg-preview.png`}
                 alt="Ted"
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-contain filter drop-shadow-2xl select-none pointer-events-none"
