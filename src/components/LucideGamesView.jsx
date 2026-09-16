@@ -106,7 +106,7 @@ export const LucideGamesView = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search 550+ games by title or category..."
+              placeholder={`Search ${games?.length || '2,400+'}+ games by title or category...`}
               className="w-full h-9 pl-9 pr-3 bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] focus:bg-[var(--bg-hover)] border border-[var(--border-color)] focus:border-[var(--accent-color)] rounded-lg text-xs text-[var(--text-main)] placeholder-[var(--text-dim)] outline-none transition-all"
             />
           </div>

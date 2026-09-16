@@ -6,7 +6,7 @@ import {
 } from '../data/initialData';
 
 const STORAGE_KEYS = {
-  GAMES: 'grrmondays_games_library_v2',
+  GAMES: 'grrmondays_games_library_v3',
   SETTINGS: 'grrmondays_app_settings_v2',
   REQUESTS: 'grrmondays_game_requests_v2',
   SHORTCUTS: 'grrmondays_shortcuts_v2',
@@ -38,30 +38,57 @@ export const getStoredGames = () => {
     const favsRaw = localStorage.getItem(STORAGE_KEYS.FAVORITES);
     const favSet = new Set(favsRaw ? JSON.parse(favsRaw) : []);
 
-    const raw = localStorage.getItem(STORAGE_KEYS.GAMES);
-    if (!raw) {
-      // Initialize with full 559 games
-      const seeded = INITIAL_GAMES.map((g) => ({
-        ...g,
-        isFavorite: favSet.has(g.id),
-      }));
-      saveStoredGames(seeded);
-      return seeded;
+    // Check v3, or fall back to previous v2 storage to migrate user data
+    const rawV3 = localStorage.getItem(STORAGE_KEYS.GAMES);
+    const rawV2 = localStorage.getItem('grrmondays_games_library_v2');
+    const raw = rawV3 || rawV2;
+
+    const savedGames = raw ? JSON.parse(raw) : [];
+    const savedMap = new Map();
+    if (Array.isArray(savedGames)) {
+      for (const g of savedGames) {
+        if (g && g.id) {
+          savedMap.set(g.id, g);
+          if (g.isFavorite) favSet.add(g.id);
+        }
+      }
     }
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length >= 50) {
-      return parsed.map((g) => ({
+
+    // Always ensure all INITIAL_GAMES (2,468 games) are present
+    const initialIdSet = new Set(INITIAL_GAMES.map((g) => g.id));
+
+    // 1. Seed/update all built-in games, merging any user favorites or custom play stats
+    const mergedInitial = INITIAL_GAMES.map((g) => {
+      const userSaved = savedMap.get(g.id);
+      return {
         ...g,
-        isFavorite: favSet.has(g.id) || g.isFavorite,
-      }));
+        plays: userSaved && typeof userSaved.plays === 'number' ? userSaved.plays : g.plays,
+        isFavorite: favSet.has(g.id) || (userSaved?.isFavorite ?? false),
+      };
+    });
+
+    // 2. Preserve any custom games the user manually added that are not part of INITIAL_GAMES
+    const customUserGames = [];
+    for (const [id, g] of savedMap.entries()) {
+      if (!initialIdSet.has(id)) {
+        customUserGames.push({
+          ...g,
+          isFavorite: favSet.has(g.id) || g.isFavorite,
+        });
+      }
     }
-    // If older smaller list, upgrade to full 559 games
-    const upgraded = INITIAL_GAMES.map((g) => ({
-      ...g,
-      isFavorite: favSet.has(g.id),
-    }));
-    saveStoredGames(upgraded);
-    return upgraded;
+
+    const finalLibrary = [...mergedInitial, ...customUserGames];
+
+    // Save back to v3 and clear old legacy key
+    localStorage.setItem(STORAGE_KEYS.GAMES, JSON.stringify(finalLibrary));
+    if (rawV2 && rawV2 !== rawV3) {
+      try {
+        localStorage.removeItem('grrmondays_games_library_v2');
+      } catch (e) {}
+    }
+
+    return finalLibrary;
   } catch (err) {
     console.error('Failed to load games from localStorage', err);
     return INITIAL_GAMES;

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Gamepad2, Sparkles, Volume2 } from 'lucide-react';
 
-export const LucideMainView = ({ onSelectView, gamesCount = 559 }) => {
+export const LucideMainView = ({ onSelectView, gamesCount = 2468 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [playCount, setPlayCount] = useState(0);
   const timerRef = useRef(null);

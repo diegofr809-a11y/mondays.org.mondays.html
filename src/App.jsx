@@ -57,6 +57,14 @@ export default function App() {
     );
   }, [settings.activeCloak, settings.customCloakTitle, settings.customCloakFavicon]);
 
+  // Ensure games library catalog is updated with the full dataset
+  useEffect(() => {
+    if (games.length < INITIAL_GAMES.length) {
+      const fullLibrary = getStoredGames();
+      setGames(fullLibrary);
+    }
+  }, [games.length]);
+
   // Global keydown listener for Panic hotkey
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -135,7 +143,7 @@ export default function App() {
   const handleResetLibraryDefaults = () => {
     setGames(INITIAL_GAMES);
     saveStoredGames(INITIAL_GAMES);
-    showToast('Reset library to 559 games');
+    showToast(`Reset library to ${INITIAL_GAMES.length} games`);
   };
 
   // Settings update

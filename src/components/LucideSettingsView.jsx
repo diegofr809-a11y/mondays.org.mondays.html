@@ -633,14 +633,14 @@ export const LucideSettingsView = ({
 
                 <button
                   onClick={() => {
-                    if (window.confirm('Reset games library to original 559 study.html games?')) {
+                    if (window.confirm('Reset games library to full built-in collection (2,468 games)?')) {
                       onResetLibraryDefaults();
                     }
                   }}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] text-xs font-medium text-amber-300 transition-all ml-auto"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Reset to Original 559 Games</span>
+                  <span>Reset to Original Games (2,468)</span>
                 </button>
               </div>
 
