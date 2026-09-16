@@ -17,6 +17,120 @@ async function startServer() {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
+  // Game frame proxy & sanitizer (resolves text/plain and XML <Module> issues on CDN games)
+  app.get('/api/game-frame', async (req, res) => {
+    try {
+      const targetUrl = req.query.url;
+      if (!targetUrl || typeof targetUrl !== 'string') {
+        return res.status(400).send('Missing target game URL parameter');
+      }
+
+      let parsedUrl;
+      try {
+        parsedUrl = new URL(targetUrl);
+        if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+          return res.status(400).send('Invalid URL protocol');
+        }
+      } catch {
+        return res.status(400).send('Malformed game URL');
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+      const response = await fetch(targetUrl, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        },
+      });
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        return res
+          .status(response.status)
+          .send(`Failed to fetch game content: HTTP ${response.status} ${response.statusText}`);
+      }
+
+      let text = await response.text();
+
+      // 1. Extract HTML from XML CDATA if present (<Module><Content type="html"><![CDATA[...]]></Content></Module>)
+      if (text.includes('<![CDATA[')) {
+        const start = text.indexOf('<![CDATA[') + 9;
+        const end = text.lastIndexOf(']]>');
+        if (end > start) {
+          text = text.substring(start, end);
+        }
+      }
+
+      // 2. If <Module> exists without CDATA, extract <html>...</html>
+      if (text.includes('<Module') && text.includes('<html')) {
+        const htmlStart = text.indexOf('<html');
+        const htmlEnd = text.lastIndexOf('</html>');
+        if (htmlEnd > htmlStart) {
+          text = text.substring(htmlStart, htmlEnd + 7);
+        } else {
+          text = text.substring(htmlStart);
+        }
+      }
+
+      // 3. Inject base href if not present so relative scripts/assets resolve
+      if (!text.includes('<base ') && !text.includes('<base>')) {
+        const baseUrl = targetUrl.substring(0, targetUrl.lastIndexOf('/') + 1);
+        const baseTag = `<base href="${baseUrl}">`;
+        if (text.includes('<head>')) {
+          text = text.replace('<head>', `<head>\n  ${baseTag}`);
+        } else if (text.includes('<head ')) {
+          text = text.replace(/<head[^>]*>/, `$&\\n  ${baseTag}`);
+        } else if (text.includes('<html')) {
+          text = text.replace(/<html[^>]*>/, `$&\\n<head>${baseTag}</head>`);
+        } else {
+          text = `<head>${baseTag}</head>\n` + text;
+        }
+      }
+
+      // 4. Inject unblocking styles and viewport meta if missing
+      if (!text.includes('viewport')) {
+        const metaTag =
+          '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">';
+        if (text.includes('<head>')) {
+          text = text.replace('<head>', `<head>\n  ${metaTag}`);
+        }
+      }
+
+      // 5. Send as clean HTML with permissive framing
+      res.removeHeader('X-Frame-Options');
+      res.removeHeader('Content-Security-Policy');
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.send(text);
+    } catch (err) {
+      console.error('Game frame proxy error:', err);
+      res.status(502).send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: system-ui, sans-serif; background: #0e0b1c; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+            .card { background: #17122c; border: 1px solid #282044; padding: 24px; border-radius: 12px; text-align: center; max-width: 400px; }
+            a { display: inline-block; margin-top: 16px; background: #9333ea; color: white; padding: 10px 18px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <h3>Game Loading Alternate Stream</h3>
+            <p style="color: #8c85a6; font-size: 13px;">This title could not load directly through the proxy. Click below to open in a direct tab.</p>
+            <a href="${req.query.url}" target="_blank" rel="noopener noreferrer">Launch Game in New Tab</a>
+          </div>
+        </body>
+        </html>
+      `);
+    }
+  });
+
   // AI Chat endpoint (supports Navy AI key sk-navy-... and Google Gemini with auto-fallback)
   app.post('/api/chat', async (req, res) => {
     try {

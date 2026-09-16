@@ -1,5 +1,23 @@
 import { CLOAK_PRESETS } from '../data/initialData';
 
+export const resolvePlayableUrl = (rawUrl) => {
+  if (!rawUrl || typeof rawUrl !== 'string') return '';
+  let url = rawUrl.trim();
+  // Route CDN files that serve text/plain or Google Gadget XML through /api/game-frame
+  if (url.includes('cdn.jsdelivr.net') || url.includes('raw.githubusercontent.com')) {
+    url = `/api/game-frame?url=${encodeURIComponent(url)}`;
+  }
+  // Ensure absolute URL if relative
+  if (url.startsWith('/')) {
+    try {
+      return `${window.location.origin}${url}`;
+    } catch {
+      return url;
+    }
+  }
+  return url;
+};
+
 export const applyTabCloak = (cloakId, customTitle, customFavicon) => {
   let title = 'grrmondays';
   let favicon =
@@ -32,35 +50,104 @@ export const triggerPanic = (panicUrl) => {
   window.location.replace(url);
 };
 
-export const openAboutBlankCloaked = (targetUrl, title) => {
+export const openAboutBlankCloaked = (targetUrl, title = 'Google Classroom', customFavicon) => {
+  if (!targetUrl) return false;
+
+  const resolvedUrl = resolvePlayableUrl(targetUrl);
+  const cleanTitle = (title || 'Google Classroom').trim();
+  const cleanFavicon =
+    customFavicon || 'https://ssl.gstatic.com/classroom/favicon.png';
+
+  const stealthHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>${cleanTitle.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</title>
+  <link rel="icon" type="image/x-icon" href="${cleanFavicon}">
+  <link rel="shortcut icon" href="${cleanFavicon}">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100vw; height: 100vh; overflow: hidden; background: #000; margin: 0; padding: 0; }
+    iframe { width: 100%; height: 100%; border: none; display: block; }
+  </style>
+</head>
+<body>
+  <iframe
+    src="${resolvedUrl}"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen; gamepad; focus-without-user-activation *; pointer-lock *"
+    allowfullscreen="true"
+    webkitallowfullscreen="true"
+    mozallowfullscreen="true"
+  ></iframe>
+</body>
+</html>`;
+
+  // 1. First Attempt: Direct about:blank with document.write
   try {
     const win = window.open('about:blank', '_blank');
-    if (!win || win.closed || typeof win.closed === 'undefined') {
-      return false;
+    if (win && !win.closed) {
+      try {
+        win.document.open();
+        win.document.write(stealthHtml);
+        win.document.close();
+        return true;
+      } catch (docErr) {
+        console.warn('Cross-origin about:blank write blocked, falling back to Blob', docErr);
+        // Window is open, but document.write failed due to sandbox/origin isolation
+        try {
+          const blob = new Blob([stealthHtml], { type: 'text/html;charset=utf-8' });
+          win.location.href = URL.createObjectURL(blob);
+          return true;
+        } catch {
+          win.location.href = resolvedUrl;
+          return true;
+        }
+      }
+    }
+  } catch (winErr) {
+    console.warn('window.open about:blank blocked or threw', winErr);
+  }
+
+  // 2. Second Attempt: Open Blob URL with cloak shell (bypasses most strict iframe popup blocks)
+  try {
+    const blob = new Blob([stealthHtml], { type: 'text/html;charset=utf-8' });
+    const blobUrl = URL.createObjectURL(blob);
+    const win = window.open(blobUrl, '_blank');
+    if (win && !win.closed) {
+      return true;
     }
 
-    win.document.title = title || 'Google Classroom';
-
-    const iframe = win.document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.top = '0';
-    iframe.style.bottom = '0';
-    iframe.style.left = '0';
-    iframe.style.right = '0';
-    iframe.style.width = '100%';
-    iframe.style.height = '100%';
-    iframe.style.border = 'none';
-    iframe.style.margin = '0';
-    iframe.style.padding = '0';
-    iframe.style.overflow = 'hidden';
-    iframe.style.zIndex = '999999';
-    iframe.src = targetUrl;
-
-    win.document.body.style.margin = '0';
-    win.document.body.appendChild(iframe);
+    // Dynamic anchor click fallback for Blob URL
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    }, 2000);
     return true;
-  } catch (err) {
-    console.warn('Popup blocked or error creating stealth frame', err);
+  } catch (blobErr) {
+    console.warn('Blob fallback window failed', blobErr);
+  }
+
+  // 3. Third Attempt: Direct link click in new tab as safe fallback
+  try {
+    const a = document.createElement('a');
+    a.href = resolvedUrl;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+    }, 1000);
+    return true;
+  } catch (finalErr) {
+    console.error('All cloaking popout methods failed', finalErr);
     return false;
   }
 };

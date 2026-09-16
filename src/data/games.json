@@ -4824,10 +4824,10 @@
     "isFavorite": false
   },
   {
-    "id": "red",
+    "id": "gold",
     "title": "Pokemon Gold",
     "category": "classic",
-    "url": "https://theavancehotel.com/play/gamefile/red.html",
+    "url": "https://theavancehotel.com/play/gamefile/gold.html",
     "thumbnailUrl": "https://theavancehotel.com/icon/games/gold.webp",
     "type": "embed",
     "plays": 244,
@@ -5132,18 +5132,6 @@
     "type": "embed",
     "plays": 142,
     "rating": 4.3,
-    "addedAt": "2026-09-12",
-    "isFavorite": false
-  },
-  {
-    "id": "fister",
-    "title": "Fister",
-    "category": "casual",
-    "url": "https://fister.fun",
-    "thumbnailUrl": "https://theavancehotel.com/icon/games/fister.webp",
-    "type": "proxy",
-    "plays": 885,
-    "rating": 4.4,
     "addedAt": "2026-09-12",
     "isFavorite": false
   },

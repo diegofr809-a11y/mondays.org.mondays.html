@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { THEMES } from '../utils/theme';
 import { CLOAK_PRESETS } from '../data/initialData';
 import { clearAllData } from '../utils/storage';
-import { triggerPanic } from '../utils/cloak';
+import { triggerPanic, openAboutBlankCloaked } from '../utils/cloak';
 import { AccountSettingsTab } from './AccountSettingsTab';
 import { CreditsSettingsTab } from './CreditsSettingsTab';
 import { WallpapersSettingsTab } from './WallpapersSettingsTab';
@@ -64,29 +64,21 @@ export const LucideSettingsView = ({
     notifySaved();
   };
 
-  // Open about:blank disguised popup window
+  // Open about:blank disguised popup window with multi-stage fallback
   const handleOpenAboutBlank = () => {
     try {
-      const win = window.open('about:blank', '_blank');
-      if (!win) {
-        alert('Please allow popups in your browser to use this feature.');
-        return;
-      }
+      const preset = CLOAK_PRESETS.find((p) => p.id === settings.activeCloak);
       const title =
-        settings.activeCloak === 'classroom'
-          ? 'Classes'
-          : settings.customCloakTitle || 'grrmondays';
-      win.document.title = title;
-      const iframe = win.document.createElement('iframe');
-      iframe.style.position = 'fixed';
-      iframe.style.top = '0';
-      iframe.style.left = '0';
-      iframe.style.width = '100vw';
-      iframe.style.height = '100vh';
-      iframe.style.border = 'none';
-      iframe.src = window.location.href;
-      win.document.body.style.margin = '0';
-      win.document.body.appendChild(iframe);
+        settings.activeCloak === 'custom'
+          ? settings.customCloakTitle || 'Classes'
+          : preset?.title || 'Google Classroom';
+      const favicon =
+        settings.activeCloak === 'custom'
+          ? settings.customCloakFavicon || 'https://ssl.gstatic.com/classroom/favicon.png'
+          : preset?.favicon || 'https://ssl.gstatic.com/classroom/favicon.png';
+
+      openAboutBlankCloaked(window.location.href, title, favicon);
+      notifySaved();
     } catch (e) {
       console.error('Popout failed', e);
     }
