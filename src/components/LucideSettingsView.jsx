@@ -3,6 +3,9 @@ import { THEMES } from '../utils/theme';
 import { CLOAK_PRESETS } from '../data/initialData';
 import { clearAllData } from '../utils/storage';
 import { triggerPanic } from '../utils/cloak';
+import { validatePremiumCode, setPremiumStatus } from '../data/premiumCodes';
+import { AccountSettingsTab } from './AccountSettingsTab';
+import { CreditsSettingsTab } from './CreditsSettingsTab';
 import {
   Palette,
   Shield,
@@ -14,20 +17,14 @@ import {
   Trash2,
   Globe,
   AlertTriangle,
-  Volume2,
-  VolumeX,
   Gamepad2,
   Maximize2,
   ExternalLink,
   Zap,
-  FolderArchive,
-  Dices,
-  Eye,
-  Sliders,
-  Play,
-  Square,
-  Sparkles,
   Layers,
+  Crown,
+  User,
+  Heart,
 } from 'lucide-react';
 
 export const LucideSettingsView = ({
@@ -37,26 +34,59 @@ export const LucideSettingsView = ({
   onImportGames,
   onClearGames,
   onResetLibraryDefaults,
+  isPremium = false,
+  onOpenPremium,
+  onPremiumActivated,
+  initialTab = 'appearance',
 }) => {
-  // Tabs: 'appearance' | 'audio' | 'stealth' | 'gameplay' | 'data'
-  const [activeTab, setActiveTab] = useState('appearance');
+  // Tabs: 'account' | 'appearance' | 'vip' | 'stealth' | 'gameplay' | 'data' | 'credits'
+  const [activeTab, setActiveTab] = useState(initialTab || 'account');
   const [showSavedNotification, setShowSavedNotification] = useState(false);
   const [importStatus, setImportStatus] = useState(null);
-  const [isTestingAudio, setIsTestingAudio] = useState(false);
-  const [testAudioCount, setTestAudioCount] = useState(0);
-  const audioTimerRef = useRef(null);
+  const [vipCodeInput, setVipCodeInput] = useState('');
+  const [vipError, setVipError] = useState('');
+  const [vipSuccess, setVipSuccess] = useState('');
 
   useEffect(() => {
-    return () => {
-      if (audioTimerRef.current) {
-        clearTimeout(audioTimerRef.current);
-      }
-    };
-  }, []);
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
 
   const notifySaved = () => {
     setShowSavedNotification(true);
-    setTimeout(() => setShowSavedNotification(false), 2000);
+    setTimeout(() => setShowSavedNotification(false), 1800);
+  };
+
+  const handleRedeemVip = (e) => {
+    e.preventDefault();
+    setVipError('');
+    setVipSuccess('');
+
+    if (!vipCodeInput.trim()) {
+      setVipError('Please enter a VIP access code.');
+      return;
+    }
+
+    if (validatePremiumCode(vipCodeInput)) {
+      setPremiumStatus(true, vipCodeInput);
+      setVipSuccess('VIP Access Unlocked! All 2,468 games are now playable.');
+      setVipCodeInput('');
+      onPremiumActivated?.();
+      notifySaved();
+    } else {
+      setVipError('Invalid VIP code. Join our Discord to claim a valid code!');
+    }
+  };
+
+  const handleDeactivateVip = () => {
+    if (window.confirm('Deactivate VIP status and return to 500 free games?')) {
+      setPremiumStatus(false);
+      setVipSuccess('');
+      setVipError('');
+      onPremiumActivated?.();
+      notifySaved();
+    }
   };
 
   const handleThemeSelect = (themeId) => {
@@ -71,24 +101,12 @@ export const LucideSettingsView = ({
     notifySaved();
   };
 
-  // Play test audio for 3 seconds
-  const handleTestAudio = () => {
-    if (audioTimerRef.current) {
-      clearTimeout(audioTimerRef.current);
-    }
-    setIsTestingAudio(true);
-    setTestAudioCount((c) => c + 1);
-    audioTimerRef.current = setTimeout(() => {
-      setIsTestingAudio(false);
-    }, 3000);
-  };
-
   // Open about:blank disguised popup window
   const handleOpenAboutBlank = () => {
     try {
       const win = window.open('about:blank', '_blank');
       if (!win) {
-        alert('Pop-up was blocked. Please allow popups for this site in your browser URL bar.');
+        alert('Please allow popups in your browser to use this feature.');
         return;
       }
       const title =
@@ -107,7 +125,7 @@ export const LucideSettingsView = ({
       win.document.body.style.margin = '0';
       win.document.body.appendChild(iframe);
     } catch (e) {
-      console.error('Failed to launch about:blank iframe window', e);
+      console.error('Popout failed', e);
     }
   };
 
@@ -138,16 +156,6 @@ export const LucideSettingsView = ({
     URL.revokeObjectURL(url);
   };
 
-  // Download complete project source code ZIP
-  const handleDownloadSourceZip = () => {
-    const a = document.createElement('a');
-    a.href = './grrmondays-source.zip';
-    a.download = 'grrmondays-source.zip';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  };
-
   const handleImportFile = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -158,20 +166,18 @@ export const LucideSettingsView = ({
         const parsed = JSON.parse(evt.target?.result);
         if (Array.isArray(parsed)) {
           onImportGames(parsed);
-          setImportStatus(`Successfully imported ${parsed.length} games`);
+          setImportStatus(`Imported ${parsed.length} games`);
         } else if (parsed.games && Array.isArray(parsed.games)) {
           onImportGames(parsed.games);
           if (parsed.settings) {
             onUpdateSettings({ ...settings, ...parsed.settings });
           }
-          setImportStatus(
-            `Successfully imported ${parsed.games.length} games and preferences`
-          );
+          setImportStatus(`Imported ${parsed.games.length} games and settings`);
         } else {
-          setImportStatus('Invalid JSON format: Expected games array.');
+          setImportStatus('Invalid JSON file format.');
         }
       } catch (err) {
-        setImportStatus('Error reading file: invalid JSON');
+        setImportStatus('Error reading file.');
       }
     };
     reader.readAsText(file);
@@ -180,7 +186,7 @@ export const LucideSettingsView = ({
   const handleClearCacheAndReset = () => {
     if (
       window.confirm(
-        'Are you sure you want to clear all storage and reset all preferences? This cannot be undone.'
+        'Reset all settings and clear storage? This cannot be undone.'
       )
     ) {
       clearAllData();
@@ -190,41 +196,58 @@ export const LucideSettingsView = ({
 
   return (
     <div className="flex-1 h-screen overflow-y-auto px-4 sm:px-8 py-8 select-none bg-[var(--bg-base)] text-[var(--text-main)]">
-      {/* Hidden audio player for testing Ted speech in settings */}
-      {isTestingAudio && (
-        <div className="sr-only pointer-events-none" aria-hidden="true">
-          <iframe
-            key={testAudioCount}
-            src={`https://www.youtube-nocookie.com/embed/pCNWg9l_sHk?autoplay=1&start=0&controls=0&disablekb=1&fs=0&modestbranding=1&rel=0&iv_load_policy=3&enablejsapi=1`}
-            allow="autoplay; encrypted-media"
-            title="Grrr Mondays Audio Test"
-            className="w-1 h-1 opacity-0 pointer-events-none fixed -top-[9999px] -left-[9999px]"
-          />
-        </div>
-      )}
-
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Top Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[var(--border-color)]">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-[var(--text-main)]">
-              Settings & Preferences
+              Settings
             </h1>
             <p className="text-xs text-[var(--text-dim)] mt-0.5">
-              Customize themes, Ted audio, stealth cloaking, gameplay controls, and source code downloads
+              Customize player account, themes, stealth mode, and credits
             </p>
           </div>
 
-          {showSavedNotification && (
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-semibold animate-fade-in">
-              <Check className="w-3.5 h-3.5" />
-              <span>Preferences Saved</span>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {isPremium ? (
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold">
+                <Crown className="w-3.5 h-3.5" />
+                <span>Premium Unlocked</span>
+              </div>
+            ) : (
+              <button
+                onClick={onOpenPremium}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold transition-all cursor-pointer shadow-sm"
+              >
+                <Crown className="w-3.5 h-3.5" />
+                <span>Get Premium</span>
+              </button>
+            )}
+
+            {showSavedNotification && (
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-semibold animate-fade-in">
+                <Check className="w-3.5 h-3.5" />
+                <span>Saved</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Navigation Tabs */}
         <div className="flex items-center gap-2 p-1 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-color)] overflow-x-auto scrollbar-none">
+          {/* Account Tab */}
+          <button
+            onClick={() => setActiveTab('account')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-md text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+              activeTab === 'account'
+                ? 'bg-[var(--accent-color)] text-white shadow-md'
+                : 'text-[var(--text-dim)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
+            }`}
+          >
+            <User className="w-3.5 h-3.5" />
+            <span>Account</span>
+          </button>
+
           <button
             onClick={() => setActiveTab('appearance')}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-md text-xs font-semibold transition-all shrink-0 cursor-pointer ${
@@ -234,19 +257,27 @@ export const LucideSettingsView = ({
             }`}
           >
             <Palette className="w-3.5 h-3.5" />
-            <span>Appearance & Themes</span>
+            <span>Themes</span>
           </button>
 
+          {/* VIP Access Tab */}
           <button
-            onClick={() => setActiveTab('audio')}
+            onClick={() => setActiveTab('vip')}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-md text-xs font-semibold transition-all shrink-0 cursor-pointer ${
-              activeTab === 'audio'
-                ? 'bg-[var(--accent-color)] text-white shadow-md'
-                : 'text-[var(--text-dim)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
+              activeTab === 'vip'
+                ? 'bg-amber-500 text-black shadow-md font-bold'
+                : 'text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 font-bold'
             }`}
           >
-            <Volume2 className="w-3.5 h-3.5" />
-            <span>Ted & Audio</span>
+            <Crown className="w-3.5 h-3.5" />
+            <span>VIP Access</span>
+            {isPremium ? (
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            ) : (
+              <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                Unlock
+              </span>
+            )}
           </button>
 
           <button
@@ -258,7 +289,7 @@ export const LucideSettingsView = ({
             }`}
           >
             <Shield className="w-3.5 h-3.5" />
-            <span>Stealth & Cloaking</span>
+            <span>Stealth</span>
           </button>
 
           <button
@@ -270,7 +301,7 @@ export const LucideSettingsView = ({
             }`}
           >
             <Gamepad2 className="w-3.5 h-3.5" />
-            <span>Gameplay & Controls</span>
+            <span>Controls</span>
           </button>
 
           <button
@@ -282,11 +313,29 @@ export const LucideSettingsView = ({
             }`}
           >
             <Database className="w-3.5 h-3.5" />
-            <span>Data & Source Code</span>
+            <span>Storage</span>
+          </button>
+
+          {/* Credits Tab */}
+          <button
+            onClick={() => setActiveTab('credits')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-md text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+              activeTab === 'credits'
+                ? 'bg-rose-600 text-white shadow-md'
+                : 'text-[var(--text-dim)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
+            }`}
+          >
+            <Heart className="w-3.5 h-3.5 text-rose-400" />
+            <span>Credits</span>
           </button>
         </div>
 
-        {/* TAB 1: APPEARANCE & THEMES */}
+        {/* TAB 0: ACCOUNT */}
+        {activeTab === 'account' && (
+          <AccountSettingsTab onAccountChange={() => notifySaved()} />
+        )}
+
+        {/* TAB 1: APPEARANCE */}
         {activeTab === 'appearance' && (
           <div className="space-y-6 animate-fade-in">
             {/* Theme Selector */}
@@ -294,18 +343,18 @@ export const LucideSettingsView = ({
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <h3 className="text-sm font-bold text-[var(--text-main)]">
-                    Theme Palette Engine (10 UI Themes)
+                    Color Themes
                   </h3>
                   <p className="text-xs text-[var(--text-dim)]">
-                    Select a color profile. CSS variables update instantly across the entire interface.
+                    Pick your favorite look and color scheme.
                   </p>
                 </div>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[var(--bg-surface)] text-[var(--accent-color)] border border-[var(--border-color)]">
-                  Active: {THEMES[settings.theme]?.name || settings.theme}
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-[var(--bg-surface)] text-[var(--accent-color)] border border-[var(--border-color)]">
+                  {THEMES[settings.theme]?.name || settings.theme}
                 </span>
               </div>
 
-              {/* 10 Theme Cards Grid */}
+              {/* Theme Cards Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2">
                 {Object.keys(THEMES).map((themeKey) => {
                   const t = THEMES[themeKey];
@@ -314,9 +363,9 @@ export const LucideSettingsView = ({
                     <button
                       key={themeKey}
                       onClick={() => handleThemeSelect(themeKey)}
-                      className={`text-left p-3 rounded-lg border transition-all relative overflow-hidden group cursor-pointer ${
+                      className={`text-left p-3 rounded-lg border transition-all cursor-pointer ${
                         isSelected
-                          ? 'border-[var(--accent-color)] bg-[var(--bg-hover)] shadow-lg'
+                          ? 'border-[var(--accent-color)] bg-[var(--bg-hover)] shadow-md'
                           : 'border-[var(--border-color)] bg-[var(--bg-surface)] hover:border-[var(--border-hover)] hover:bg-[var(--bg-hover)]'
                       }`}
                     >
@@ -335,22 +384,18 @@ export const LucideSettingsView = ({
                         {t.description}
                       </p>
 
-                      {/* Swatch dots */}
                       <div className="flex items-center gap-1.5">
                         <div
-                          className="w-5 h-5 rounded-full border border-black/30 shadow-xs"
+                          className="w-5 h-5 rounded-full border border-black/30"
                           style={{ backgroundColor: t.previewColors[0] }}
-                          title="Base Background"
                         />
                         <div
-                          className="w-5 h-5 rounded-full border border-black/30 shadow-xs"
+                          className="w-5 h-5 rounded-full border border-black/30"
                           style={{ backgroundColor: t.previewColors[1] }}
-                          title="Accent Color"
                         />
                         <div
-                          className="w-5 h-5 rounded-full border border-black/30 shadow-xs"
+                          className="w-5 h-5 rounded-full border border-black/30"
                           style={{ backgroundColor: t.previewColors[2] }}
-                          title="Card / Highlight"
                         />
                       </div>
                     </button>
@@ -359,14 +404,13 @@ export const LucideSettingsView = ({
               </div>
             </div>
 
-            {/* Layout & Visual Toggles */}
+            {/* Display Toggles */}
             <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-4">
               <h3 className="text-sm font-bold text-[var(--text-main)]">
-                Display & Visual Layout Toggles
+                Display Options
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Compact Grid Toggle */}
                 <button
                   type="button"
                   onClick={() => handleUpdate('compactCardGrid', !settings.compactCardGrid)}
@@ -387,12 +431,11 @@ export const LucideSettingsView = ({
                       </span>
                     </div>
                     <p className="text-[11px] text-[var(--text-dim)] mt-1">
-                      Fits more game titles onto a single screen with denser spacing
+                      Fits more games on the screen at once
                     </p>
                   </div>
                 </button>
 
-                {/* Disable Animations */}
                 <button
                   type="button"
                   onClick={() => handleUpdate('disableAnimations', !settings.disableAnimations)}
@@ -406,14 +449,14 @@ export const LucideSettingsView = ({
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-[var(--text-main)]">
-                        Reduce Motion & Animations
+                        Less Animations
                       </span>
                       <span className={`text-[10px] px-2 py-0.5 rounded font-mono ${settings.disableAnimations ? 'bg-emerald-500/20 text-emerald-300' : 'bg-zinc-700/40 text-zinc-400'}`}>
                         {settings.disableAnimations ? 'ON' : 'OFF'}
                       </span>
                     </div>
                     <p className="text-[11px] text-[var(--text-dim)] mt-1">
-                      Smoother performance on lower-end laptops and Chromebooks
+                      Faster performance on Chromebooks
                     </p>
                   </div>
                 </button>
@@ -422,181 +465,257 @@ export const LucideSettingsView = ({
           </div>
         )}
 
-        {/* TAB 2: TED & AUDIO SETTINGS */}
-        {activeTab === 'audio' && (
-          <div className="space-y-5 animate-fade-in">
-            {/* Ted Sound Control Card */}
-            <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-bold text-[var(--text-main)]">
-                    Ted Bear Speech & Sound
-                  </h3>
-                  <p className="text-xs text-[var(--text-dim)]">
-                    Configure the #Grrr... Mondays audio clip that plays when clicking Ted
-                  </p>
-                </div>
-                <button
-                  onClick={handleTestAudio}
-                  disabled={isTestingAudio}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--accent-color)] text-white text-xs font-semibold shadow-sm hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
-                >
-                  {isTestingAudio ? (
-                    <>
-                      <Volume2 className="w-3.5 h-3.5 animate-pulse" />
-                      <span>Playing 3s Clip...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-3.5 h-3.5" />
-                      <span>Test Ted Audio</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* Sound Toggles */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                {/* Ted Sound Enabled Toggle */}
-                <button
-                  type="button"
-                  onClick={() => handleUpdate('tedSoundEnabled', !settings.tedSoundEnabled)}
-                  className={`p-3 rounded-lg border text-left flex items-start gap-3 transition-all cursor-pointer ${
-                    settings.tedSoundEnabled
-                      ? 'border-[var(--accent-color)] bg-[var(--bg-hover)]'
-                      : 'border-[var(--border-color)] bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)]'
-                  }`}
-                >
-                  <Volume2 className="w-5 h-5 text-[var(--accent-color)] shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[var(--text-main)]">
-                        Ted Voice Line
-                      </span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded font-mono ${settings.tedSoundEnabled ? 'bg-emerald-500/20 text-emerald-300' : 'bg-zinc-700/40 text-zinc-400'}`}>
-                        {settings.tedSoundEnabled ? 'ENABLED' : 'MUTED'}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-[var(--text-dim)] mt-1">
-                      Play audio clip when clicking the Ted bear on the home screen
-                    </p>
-                  </div>
-                </button>
-
-                {/* Master Sound Effects Toggle */}
-                <button
-                  type="button"
-                  onClick={() => handleUpdate('soundEffectsEnabled', !settings.soundEffectsEnabled)}
-                  className={`p-3 rounded-lg border text-left flex items-start gap-3 transition-all cursor-pointer ${
-                    settings.soundEffectsEnabled
-                      ? 'border-[var(--accent-color)] bg-[var(--bg-hover)]'
-                      : 'border-[var(--border-color)] bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)]'
-                  }`}
-                >
-                  <Sliders className="w-5 h-5 text-[var(--accent-color)] shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[var(--text-main)]">
-                        UI Sound Feedback
-                      </span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded font-mono ${settings.soundEffectsEnabled ? 'bg-emerald-500/20 text-emerald-300' : 'bg-zinc-700/40 text-zinc-400'}`}>
-                        {settings.soundEffectsEnabled ? 'ENABLED' : 'DISABLED'}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-[var(--text-dim)] mt-1">
-                      Audio feedback for game clicks, notifications, and button presses
-                    </p>
-                  </div>
-                </button>
-              </div>
-
-              {/* Volume Slider */}
-              <div className="pt-2 border-t border-[var(--border-color)]">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-semibold text-[var(--text-main)] flex items-center gap-2">
-                    <Volume2 className="w-4 h-4 text-[var(--accent-color)]" />
-                    <span>Playback Volume: {settings.audioVolume ?? 80}%</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => handleUpdate('audioVolume', settings.audioVolume === 0 ? 80 : 0)}
-                    className="text-xs text-[var(--accent-color)] hover:underline cursor-pointer"
+        {/* TAB: VIP ACCESS */}
+        {activeTab === 'vip' && (
+          <div className="space-y-6 animate-fade-in">
+            {/* VIP Status Card */}
+            <div
+              className={`p-6 rounded-2xl border transition-all ${
+                isPremium
+                  ? 'bg-gradient-to-br from-amber-500/15 via-[var(--bg-card)] to-amber-500/5 border-amber-500/40 shadow-lg'
+                  : 'bg-[var(--bg-card)] border-[var(--border-color)]'
+              }`}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div
+                    className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${
+                      isPremium
+                        ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/30'
+                        : 'bg-amber-500/10 border border-amber-500/30 text-amber-400'
+                    }`}
                   >
-                    {settings.audioVolume === 0 ? 'Unmute' : 'Mute All'}
-                  </button>
+                    <Crown className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="text-xl font-black tracking-tight text-[var(--text-main)]">
+                        {isPremium ? 'VIP Status: Active' : 'VIP Access'}
+                      </h2>
+                      {isPremium ? (
+                        <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[11px] font-extrabold border border-amber-500/40">
+                          ALL 2,468 GAMES UNLOCKED
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-0.5 rounded-full bg-[var(--bg-surface)] text-[var(--text-dim)] text-[11px] font-semibold border border-[var(--border-color)]">
+                          500 FREE GAMES
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-[var(--text-dim)] mt-1">
+                      {isPremium
+                        ? 'You have unrestricted lifetime access to every unblocked game in the catalog.'
+                        : 'Free users can play the first 500 games. Unlock all 2,000+ extra titles with VIP.'}
+                    </p>
+                  </div>
                 </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={settings.audioVolume ?? 80}
-                  onChange={(e) => handleUpdate('audioVolume', parseInt(e.target.value, 10))}
-                  className="w-full accent-[var(--accent-color)] cursor-pointer h-2 bg-[var(--bg-surface)] rounded-lg"
-                />
+
+                {isPremium && (
+                  <button
+                    onClick={handleDeactivateVip}
+                    className="self-start sm:self-auto text-xs text-red-400 hover:text-red-300 px-3 py-1.5 rounded-lg border border-red-500/20 hover:bg-red-500/10 transition-colors cursor-pointer"
+                  >
+                    Deactivate VIP
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Redeem Code Section (If not premium) */}
+            {!isPremium && (
+              <div className="p-6 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[var(--accent-color)]/10 text-[var(--accent-color)] flex items-center justify-center shrink-0">
+                    <Zap className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-[var(--text-main)]">
+                      Redeem VIP Access Code
+                    </h3>
+                    <p className="text-xs text-[var(--text-dim)]">
+                      Enter your VIP key to instantly unlock the entire 2,468 games catalog.
+                    </p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleRedeemVip} className="flex flex-col sm:flex-row gap-3 pt-1">
+                  <input
+                    type="text"
+                    value={vipCodeInput}
+                    onChange={(e) => {
+                      setVipCodeInput(e.target.value);
+                      setVipError('');
+                    }}
+                    placeholder="Enter code (e.g. GRR-PREMIUM-7729)"
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-color)] text-[var(--text-main)] text-sm uppercase tracking-wider font-mono placeholder:normal-case placeholder:font-sans placeholder:text-[var(--text-dim)] focus:outline-none focus:border-amber-400"
+                  />
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs transition-all shadow-md cursor-pointer shrink-0"
+                  >
+                    Redeem Code
+                  </button>
+                </form>
+
+                {vipError && (
+                  <p className="text-xs text-red-400 font-medium flex items-center gap-1.5 animate-shake">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    {vipError}
+                  </p>
+                )}
+
+                {vipSuccess && (
+                  <p className="text-xs text-emerald-400 font-medium flex items-center gap-1.5 animate-fade-in">
+                    <Check className="w-3.5 h-3.5" />
+                    {vipSuccess}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Discord Community Card */}
+            <div className="p-6 rounded-2xl bg-gradient-to-r from-[#5865F2]/15 via-[var(--bg-card)] to-transparent border border-[#5865F2]/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-[#5865F2] text-white flex items-center justify-center shrink-0">
+                    <Globe className="w-4 h-4" />
+                  </div>
+                  <h3 className="text-sm font-bold text-[var(--text-main)]">
+                    Need a VIP Code? Join our Discord
+                  </h3>
+                </div>
+                <p className="text-xs text-[var(--text-dim)] pl-9 max-w-lg">
+                  Free VIP keys are distributed in our Discord community! Join to grab active codes, suggest new games, and enter tournaments.
+                </p>
+              </div>
+
+              <a
+                href="https://discord.gg"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] text-white text-xs font-bold transition-all shadow-md shrink-0 cursor-pointer"
+              >
+                <span>Join Discord</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
+
+            {/* VIP Perks Grid */}
+            <div className="p-6 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-4">
+              <h3 className="text-sm font-bold text-[var(--text-main)]">
+                VIP Membership Benefits
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-3.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-color)] flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0">
+                    <Gamepad2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-[var(--text-main)]">
+                      2,468 Total Games Unlocked
+                    </h4>
+                    <p className="text-[11px] text-[var(--text-dim)] mt-0.5">
+                      Full access to all 2,000+ restricted titles across action, retro arcade, rhythm, and sports.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-color)] flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+                    <Shield className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-[var(--text-main)]">
+                      Zero Lock Prompts
+                    </h4>
+                    <p className="text-[11px] text-[var(--text-dim)] mt-0.5">
+                      No locked game popups. Every game launches directly with zero restrictions.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-color)] flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-purple-500/15 text-purple-400 flex items-center justify-center shrink-0">
+                    <Palette className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-[var(--text-main)]">
+                      18 Premium Themes
+                    </h4>
+                    <p className="text-[11px] text-[var(--text-dim)] mt-0.5">
+                      Enjoy Crimson Red, Matrix Terminal, Sakura Blossom, Solar Amber, and all custom themes.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-color)] flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-blue-500/15 text-blue-400 flex items-center justify-center shrink-0">
+                    <Crown className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-[var(--text-main)]">
+                      VIP Badge & Discord Role
+                    </h4>
+                    <p className="text-[11px] text-[var(--text-dim)] mt-0.5">
+                      Gold VIP styling on your interface and access to exclusive VIP channels.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* TAB 3: STEALTH & CLOAKING */}
+        {/* TAB 2: STEALTH */}
         {activeTab === 'stealth' && (
           <div className="space-y-5 animate-fade-in">
-            {/* Emergency Panic & Unblock Actions */}
-            <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-xs font-bold text-[var(--text-main)]">
-                    Stealth Window & Panic Controls
-                  </h4>
-                  <p className="text-[11px] text-[var(--text-dim)]">
-                    Instantly mask tabs or open in a disguised popout window
-                  </p>
-                </div>
-              </div>
+            {/* Quick Actions */}
+            <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-3">
+              <h4 className="text-xs font-bold text-[var(--text-main)]">
+                Stealth & Panic Actions
+              </h4>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* About:blank Button */}
                 <button
                   onClick={handleOpenAboutBlank}
-                  className="flex items-center gap-2.5 p-3 rounded-lg bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] hover:border-[var(--accent-color)] transition-all cursor-pointer text-left group"
+                  className="flex items-center gap-2.5 p-3 rounded-lg bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] hover:border-[var(--accent-color)] transition-all cursor-pointer text-left"
                 >
-                  <ExternalLink className="w-5 h-5 text-[var(--accent-color)] group-hover:scale-110 transition-transform shrink-0" />
+                  <ExternalLink className="w-5 h-5 text-[var(--accent-color)] shrink-0" />
                   <div>
                     <div className="text-xs font-bold text-[var(--text-main)]">
-                      Open in Cloaked Window (`about:blank`)
+                      Open in Safe Window (about:blank)
                     </div>
                     <div className="text-[11px] text-[var(--text-dim)]">
-                      Hides URL from browser history & extensions
+                      Hides site from browser history
                     </div>
                   </div>
                 </button>
 
-                {/* Test Panic Hotkey Button */}
                 <button
                   onClick={handleTestPanic}
-                  className="flex items-center gap-2.5 p-3 rounded-lg bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] border border-red-500/30 hover:border-red-500 transition-all cursor-pointer text-left group"
+                  className="flex items-center gap-2.5 p-3 rounded-lg bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] border border-red-500/30 hover:border-red-500 transition-all cursor-pointer text-left"
                 >
-                  <Shield className="w-5 h-5 text-red-400 group-hover:scale-110 transition-transform shrink-0" />
+                  <Shield className="w-5 h-5 text-red-400 shrink-0" />
                   <div>
                     <div className="text-xs font-bold text-red-300">
-                      Trigger Panic Hotkey Now
+                      Test Panic Button Now
                     </div>
                     <div className="text-[11px] text-[var(--text-dim)]">
-                      Instantly leaves site to {settings.panicUrl || 'Google Classroom'}
+                      Leaves immediately to {settings.panicUrl || 'Google Classroom'}
                     </div>
                   </div>
                 </button>
               </div>
             </div>
 
-            {/* Tab Disguise Presets */}
+            {/* Tab Cloaks */}
             <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-3">
               <div>
                 <h4 className="text-xs font-bold text-[var(--text-main)]">
-                  Tab Cloaking Presets (8 Disguises)
+                  Tab Disguise Presets
                 </h4>
                 <p className="text-[11px] text-[var(--text-dim)]">
-                  Instantly changes this browser tab's title and icon to match educational portals
+                  Changes your tab's title and icon so it looks like schoolwork
                 </p>
               </div>
 
@@ -621,11 +740,9 @@ export const LucideSettingsView = ({
                           e.target.style.display = 'none';
                         }}
                       />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-semibold text-[var(--text-main)] truncate">
-                          {preset.name}
-                        </div>
-                      </div>
+                      <span className="text-xs font-semibold text-[var(--text-main)] truncate flex-1">
+                        {preset.name}
+                      </span>
                       {isSelected && (
                         <Check className="w-3.5 h-3.5 text-[var(--accent-color)] shrink-0" />
                       )}
@@ -633,7 +750,6 @@ export const LucideSettingsView = ({
                   );
                 })}
 
-                {/* Custom Cloak Option */}
                 <button
                   onClick={() => handleUpdate('activeCloak', 'custom')}
                   className={`flex items-center gap-2.5 p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
@@ -643,23 +759,20 @@ export const LucideSettingsView = ({
                   }`}
                 >
                   <Globe className="w-4 h-4 text-purple-400 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs font-semibold text-[var(--text-main)] truncate">
-                      Custom Disguise
-                    </div>
-                  </div>
+                  <span className="text-xs font-semibold text-[var(--text-main)] truncate flex-1">
+                    Custom Disguise
+                  </span>
                   {settings.activeCloak === 'custom' && (
                     <Check className="w-3.5 h-3.5 text-[var(--accent-color)] shrink-0" />
                   )}
                 </button>
               </div>
 
-              {/* Custom Cloak inputs when selected */}
               {settings.activeCloak === 'custom' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-[var(--border-color)]">
                   <div>
                     <label className="text-[10px] font-semibold text-[var(--text-dim)] mb-1 block">
-                      Custom Tab Title:
+                      Tab Title:
                     </label>
                     <input
                       type="text"
@@ -671,7 +784,7 @@ export const LucideSettingsView = ({
                   </div>
                   <div>
                     <label className="text-[10px] font-semibold text-[var(--text-dim)] mb-1 block">
-                      Custom Favicon URL:
+                      Favicon URL:
                     </label>
                     <input
                       type="text"
@@ -685,21 +798,21 @@ export const LucideSettingsView = ({
               )}
             </div>
 
-            {/* Panic Key Settings */}
+            {/* Panic Key */}
             <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-3">
               <div>
                 <h4 className="text-xs font-bold text-[var(--text-main)]">
-                  Panic Hotkey Configuration
+                  Panic Key Setup
                 </h4>
                 <p className="text-[11px] text-[var(--text-dim)]">
-                  Pressing this single key instantly opens the safe destination URL in this tab
+                  Pressing this key instantly redirects to a safe educational site
                 </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-[10px] font-semibold text-[var(--text-dim)] mb-1 block">
-                    Panic Hotkey Trigger:
+                    Panic Key:
                   </label>
                   <div className="flex items-center gap-2">
                     <input
@@ -707,17 +820,17 @@ export const LucideSettingsView = ({
                       value={settings.panicKey}
                       onChange={(e) => handleUpdate('panicKey', e.target.value.slice(-1))}
                       maxLength={1}
-                      className="w-20 h-8 px-3 text-center rounded bg-[var(--bg-surface)] border border-[var(--border-color)] font-mono text-sm font-bold text-[var(--text-main)] outline-none focus:border-[var(--accent-color)]"
+                      className="w-16 h-8 text-center rounded bg-[var(--bg-surface)] border border-[var(--border-color)] font-mono text-sm font-bold text-[var(--text-main)] outline-none focus:border-[var(--accent-color)]"
                     />
-                    <span className="text-[10px] text-[var(--text-dim)]">
-                      (Press any key to trigger panic redirect)
+                    <span className="text-[11px] text-[var(--text-dim)]">
+                      Press this key anytime to escape
                     </span>
                   </div>
                 </div>
 
                 <div>
                   <label className="text-[10px] font-semibold text-[var(--text-dim)] mb-1 block">
-                    Safe Redirect URL:
+                    Safe Website:
                   </label>
                   <input
                     type="text"
@@ -732,16 +845,15 @@ export const LucideSettingsView = ({
           </div>
         )}
 
-        {/* TAB 4: GAMEPLAY & CONTROLS */}
+        {/* TAB 4: CONTROLS */}
         {activeTab === 'gameplay' && (
           <div className="space-y-5 animate-fade-in">
             <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-4">
               <h3 className="text-sm font-bold text-[var(--text-main)]">
-                Game Player Controls & Window Handling
+                Game Window Controls
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Auto Fullscreen Button Toggle */}
                 <button
                   type="button"
                   onClick={() => handleUpdate('autoFullscreen', !settings.autoFullscreen)}
@@ -755,19 +867,18 @@ export const LucideSettingsView = ({
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-[var(--text-main)]">
-                        Auto-Fullscreen Mode
+                        Auto-Fullscreen
                       </span>
                       <span className={`text-[10px] px-2 py-0.5 rounded font-mono ${settings.autoFullscreen ? 'bg-emerald-500/20 text-emerald-300' : 'bg-zinc-700/40 text-zinc-400'}`}>
                         {settings.autoFullscreen ? 'ON' : 'OFF'}
                       </span>
                     </div>
                     <p className="text-[11px] text-[var(--text-dim)] mt-1">
-                      Automatically request fullscreen view when launching a game modal
+                      Opens games in full screen automatically
                     </p>
                   </div>
                 </button>
 
-                {/* Open in New Window Toggle */}
                 <button
                   type="button"
                   onClick={() => handleUpdate('openInNewTab', !settings.openInNewTab)}
@@ -781,19 +892,18 @@ export const LucideSettingsView = ({
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-[var(--text-main)]">
-                        Open Games in New Window
+                        New Tab Mode
                       </span>
                       <span className={`text-[10px] px-2 py-0.5 rounded font-mono ${settings.openInNewTab ? 'bg-emerald-500/20 text-emerald-300' : 'bg-zinc-700/40 text-zinc-400'}`}>
                         {settings.openInNewTab ? 'ON' : 'OFF'}
                       </span>
                     </div>
                     <p className="text-[11px] text-[var(--text-dim)] mt-1">
-                      Pop out game iframe into a standalone browser window
+                      Launches games into their own new window
                     </p>
                   </div>
                 </button>
 
-                {/* Prevent Tab Close Confirmation Toggle */}
                 <button
                   type="button"
                   onClick={() => handleUpdate('confirmBeforeLeave', !settings.confirmBeforeLeave)}
@@ -807,40 +917,14 @@ export const LucideSettingsView = ({
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-[var(--text-main)]">
-                        Anti-Close Dialog (School Safe)
+                        Leave Warning
                       </span>
                       <span className={`text-[10px] px-2 py-0.5 rounded font-mono ${settings.confirmBeforeLeave ? 'bg-emerald-500/20 text-emerald-300' : 'bg-zinc-700/40 text-zinc-400'}`}>
                         {settings.confirmBeforeLeave ? 'ON' : 'OFF'}
                       </span>
                     </div>
                     <p className="text-[11px] text-[var(--text-dim)] mt-1">
-                      Prompt "Changes you made may not be saved" when closing tab to prevent accidental loss
-                    </p>
-                  </div>
-                </button>
-
-                {/* High Performance Mode */}
-                <button
-                  type="button"
-                  onClick={() => handleUpdate('highPerformanceMode', !settings.highPerformanceMode)}
-                  className={`p-3 rounded-lg border text-left flex items-start gap-3 transition-all cursor-pointer ${
-                    settings.highPerformanceMode
-                      ? 'border-[var(--accent-color)] bg-[var(--bg-hover)]'
-                      : 'border-[var(--border-color)] bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)]'
-                  }`}
-                >
-                  <Zap className="w-5 h-5 text-[var(--accent-color)] shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[var(--text-main)]">
-                        Hardware Accelerated High-FPS
-                      </span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded font-mono ${settings.highPerformanceMode ? 'bg-emerald-500/20 text-emerald-300' : 'bg-zinc-700/40 text-zinc-400'}`}>
-                        {settings.highPerformanceMode ? 'ON' : 'OFF'}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-[var(--text-dim)] mt-1">
-                      Request high-refresh rate canvas context for action and racing games
+                      Asks before closing tab to prevent losing game progress
                     </p>
                   </div>
                 </button>
@@ -849,52 +933,53 @@ export const LucideSettingsView = ({
           </div>
         )}
 
-        {/* TAB 5: DATA, SOURCE CODE & BACKUP */}
+        {/* TAB 5: STORAGE */}
         {activeTab === 'data' && (
           <div className="space-y-5 animate-fade-in">
-            {/* Download Full Source Code Card */}
-            <div className="p-4 rounded-xl bg-gradient-to-r from-purple-950/40 via-[var(--bg-card)] to-indigo-950/30 border border-purple-500/30 space-y-3">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 shrink-0">
-                    <FolderArchive className="w-5 h-5" />
+            {/* VIP Status Card */}
+            <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                    <Crown className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-white">
-                      Download Complete Project Source Code (.ZIP)
+                    <h4 className="text-xs font-bold text-[var(--text-main)]">
+                      Premium Membership Status
                     </h4>
-                    <p className="text-xs text-purple-200/70 mt-1">
-                      Get the entire offline source code for grrmondays including all 2,468 games, React components, Tailwind styling, Vite build configuration, and assets.
+                    <p className="text-[11px] text-[var(--text-dim)]">
+                      {isPremium
+                        ? 'All 2,468 games unlocked'
+                        : 'Free tier: 500 games accessible'}
                     </p>
                   </div>
                 </div>
 
                 <button
-                  onClick={handleDownloadSourceZip}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-lg transition-all cursor-pointer shrink-0"
+                  onClick={onOpenPremium}
+                  className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold shadow-xs transition-all cursor-pointer"
                 >
-                  <Download className="w-4 h-4" />
-                  <span>Download ZIP</span>
+                  {isPremium ? 'Manage VIP' : 'Enter Code'}
                 </button>
               </div>
             </div>
 
-            {/* Library Overview Card */}
+            {/* Games Library Status */}
             <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-3">
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-xs font-bold text-[var(--text-main)]">
-                    Games Library Status
+                    Games Catalog
                   </h4>
                   <p className="text-[11px] text-[var(--text-dim)]">
-                    Local persistent library synchronized with full built-in game catalog
+                    Total games stored in your browser
                   </p>
                 </div>
                 <div className="text-right">
                   <span className="text-lg font-bold text-[var(--accent-color)]">
                     {games.length}
                   </span>
-                  <span className="text-xs text-[var(--text-dim)] ml-1">games loaded</span>
+                  <span className="text-xs text-[var(--text-dim)] ml-1">games</span>
                 </div>
               </div>
 
@@ -904,12 +989,12 @@ export const LucideSettingsView = ({
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] text-xs font-medium text-[var(--text-main)] transition-all cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5 text-[var(--accent-color)]" />
-                  <span>Backup Library to JSON</span>
+                  <span>Backup Games</span>
                 </button>
 
                 <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] text-xs font-medium text-[var(--text-main)] cursor-pointer transition-all">
                   <Upload className="w-3.5 h-3.5 text-blue-400" />
-                  <span>Restore from JSON</span>
+                  <span>Restore</span>
                   <input
                     type="file"
                     accept=".json"
@@ -920,18 +1005,14 @@ export const LucideSettingsView = ({
 
                 <button
                   onClick={() => {
-                    if (
-                      window.confirm(
-                        'Reset games library to full built-in collection (2,468 games)?'
-                      )
-                    ) {
+                    if (window.confirm('Reset games library to original collection?')) {
                       onResetLibraryDefaults();
                     }
                   }}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] text-xs font-medium text-amber-300 transition-all ml-auto cursor-pointer"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Reset to Original Games (2,468)</span>
+                  <span>Reset to Default</span>
                 </button>
               </div>
 
@@ -942,16 +1023,16 @@ export const LucideSettingsView = ({
               )}
             </div>
 
-            {/* Clear Storage / Cache */}
+            {/* Clear Storage */}
             <div className="p-4 rounded-xl bg-red-950/20 border border-red-900/40 space-y-3">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-400" />
                 <h4 className="text-xs font-bold text-red-200">
-                  Clear Local Storage & Cache
+                  Clear Browser Cache
                 </h4>
               </div>
               <p className="text-[11px] text-red-300/80">
-                Wipes all saved shortcuts, customized preferences, search history, and cached game session data from this browser.
+                Wipes all saved settings, favorites, and game data from this browser.
               </p>
 
               <button
@@ -959,10 +1040,15 @@ export const LucideSettingsView = ({
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-semibold shadow-md transition-all cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                <span>Clear All Local Storage & Cache</span>
+                <span>Clear All Storage</span>
               </button>
             </div>
           </div>
+        )}
+
+        {/* TAB 5: CREDITS */}
+        {activeTab === 'credits' && (
+          <CreditsSettingsTab />
         )}
       </div>
     </div>

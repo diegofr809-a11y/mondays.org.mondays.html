@@ -9,7 +9,8 @@ import {
 import { applyTabCloak, triggerPanic } from './utils/cloak';
 import { applyTheme } from './utils/theme';
 import { INITIAL_GAMES } from './data/initialData';
-import { LucideSidebar } from './components/LucideSidebar';
+import { isPremiumUser } from './data/premiumCodes';
+import { BottomLeftNav } from './components/BottomLeftNav';
 import { LucideMainView } from './components/LucideMainView';
 import { LucideHomeView } from './components/LucideHomeView';
 import { LucideGamesView } from './components/LucideGamesView';
@@ -17,20 +18,24 @@ import { LucideSettingsView } from './components/LucideSettingsView';
 import { ProxyBrowser } from './components/ProxyBrowser';
 import { GamePlayerModal } from './components/GamePlayerModal';
 import { AddGameModal } from './components/AddGameModal';
+import { PremiumModal } from './components/PremiumModal';
 import { CheckCircle2, X } from 'lucide-react';
 
 export default function App() {
-  // Navigation View State: 'main' | 'home' | 'proxy' | 'games' | 'ai' | 'settings'
+  // Navigation View State: 'main' | 'home' | 'proxy' | 'games' | 'settings'
   const [activeView, setActiveView] = useState('main');
+  const [settingsInitialTab, setSettingsInitialTab] = useState('appearance');
   const [browserInitialUrl, setBrowserInitialUrl] = useState('');
 
   // Persistent storage state
   const [games, setGames] = useState(getStoredGames);
   const [settings, setSettings] = useState(getStoredSettings);
+  const [isPremium, setIsPremium] = useState(isPremiumUser);
 
   // Modals state
   const [isAddGameModalOpen, setIsAddGameModalOpen] = useState(false);
   const [activeGameToPlay, setActiveGameToPlay] = useState(null);
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
 
   // Toast notification
   const [toastMessage, setToastMessage] = useState(null);
@@ -40,6 +45,16 @@ export default function App() {
     setTimeout(() => {
       setToastMessage(null);
     }, 3000);
+  };
+
+  const handleSelectView = (v, initialTab = 'appearance') => {
+    if (v === 'main' || v === 'home') {
+      setBrowserInitialUrl('');
+    }
+    if (v === 'settings') {
+      setSettingsInitialTab(initialTab);
+    }
+    setActiveView(v);
   };
 
   // Apply theme dynamically to CSS variables whenever setting changes
@@ -172,34 +187,25 @@ export default function App() {
           <span>{toastMessage}</span>
           <button
             onClick={() => setToastMessage(null)}
-            className="text-[var(--text-dim)] hover:text-[var(--text-main)] p-0.5 ml-1"
+            className="text-[var(--text-dim)] hover:text-[var(--text-main)] p-0.5 ml-1 cursor-pointer"
           >
             <X className="w-3 h-3" />
           </button>
         </div>
       )}
 
-      {/* Left Sidebar */}
-      <LucideSidebar
+      {/* Floating Bottom-Left Navigation: Home button that pops up navigation upwards to top left */}
+      <BottomLeftNav
         activeView={activeView}
-        onSelectView={(v) => {
-          if (v === 'main' || v === 'home') {
-            setBrowserInitialUrl('');
-          }
-          setActiveView(v);
-        }}
-        onOpenSettings={() => setActiveView('settings')}
+        onSelectView={handleSelectView}
+        gamesCount={games.length}
+        isPremium={isPremium}
       />
 
-      {/* Center Main Stage View */}
+      {/* Main Screen / Content Views */}
       <div className="flex-1 h-screen overflow-hidden flex flex-col relative min-w-0">
-        {/* 0. Main View (Ted Bear & Quick Access) */}
-        {activeView === 'main' && (
-          <LucideMainView
-            onSelectView={setActiveView}
-            gamesCount={games.length}
-          />
-        )}
+        {/* 0. Main View (#grrmondays Interactive Sound Screen Only) */}
+        {activeView === 'main' && <LucideMainView />}
 
         {/* 1. Home View */}
         {activeView === 'home' && (
@@ -212,16 +218,18 @@ export default function App() {
             initialUrl={browserInitialUrl}
             searchEngine={settings.defaultSearchEngine}
             onClose={() => {
-              setActiveView('home');
+              setActiveView('main');
               setBrowserInitialUrl('');
             }}
           />
         )}
 
-        {/* 3. Games Library View (2468 Games) */}
+        {/* 3. Games Library View (500 free / 2,468 total) */}
         {activeView === 'games' && (
           <LucideGamesView
             games={games}
+            isPremium={isPremium}
+            onOpenPremium={() => handleSelectView('settings', 'vip')}
             onPlayGame={(g) => setActiveGameToPlay(g)}
             onOpenAddGame={() => setIsAddGameModalOpen(true)}
             onToggleFavorite={handleToggleFavorite}
@@ -229,7 +237,7 @@ export default function App() {
           />
         )}
 
-        {/* 4. Settings Page */}
+        {/* 4. Settings Page (with Themes and VIP inside) */}
         {activeView === 'settings' && (
           <LucideSettingsView
             settings={settings}
@@ -238,6 +246,13 @@ export default function App() {
             onImportGames={handleImportGames}
             onClearGames={handleClearGames}
             onResetLibraryDefaults={handleResetLibraryDefaults}
+            isPremium={isPremium}
+            initialTab={settingsInitialTab}
+            onOpenPremium={() => setIsPremiumModalOpen(true)}
+            onPremiumActivated={() => {
+              setIsPremium(isPremiumUser());
+              showToast('VIP status updated!');
+            }}
           />
         )}
       </div>
@@ -257,6 +272,16 @@ export default function App() {
           onRecordPlay={handleRecordPlay}
         />
       )}
+
+      <PremiumModal
+        isOpen={isPremiumModalOpen}
+        onClose={() => setIsPremiumModalOpen(false)}
+        isPremium={isPremium}
+        onPremiumActivated={() => {
+          setIsPremium(isPremiumUser());
+          showToast('VIP status updated!');
+        }}
+      />
     </div>
   );
 }
