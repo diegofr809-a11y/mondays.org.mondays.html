@@ -377,7 +377,97 @@ export const THEMES = {
     },
     previewColors: ['#1d2021', '#fe8019', '#32302f'],
   },
+  tokyo: {
+    id: 'tokyo',
+    name: 'Tokyo Night',
+    description: 'Deep indigo night with neon electric blue and purple',
+    colors: {
+      bgBase: '#1a1b26',
+      bgSurface: '#24283b',
+      bgCard: '#292e42',
+      bgHover: '#3b4261',
+      border: '#414868',
+      borderHover: '#7aa2f7',
+      accent: '#7aa2f7',
+      accentHover: '#bb9af7',
+      accentGlow: 'rgba(122, 162, 247, 0.35)',
+      textMain: '#c0caf5',
+      textMuted: '#a9b1d6',
+      textDim: '#7aa2f7',
+      badgeBg: 'rgba(122, 162, 247, 0.18)',
+    },
+    previewColors: ['#1a1b26', '#7aa2f7', '#bb9af7'],
+  },
+  amethyst: {
+    id: 'amethyst',
+    name: 'Royal Amethyst',
+    description: 'Deep royal purple velvet with golden highlights',
+    colors: {
+      bgBase: '#130a1c',
+      bgSurface: '#1c102a',
+      bgCard: '#27173b',
+      bgHover: '#36214f',
+      border: '#4c2e6f',
+      borderHover: '#fbbf24',
+      accent: '#c084fc',
+      accentHover: '#e879f9',
+      accentGlow: 'rgba(192, 132, 252, 0.35)',
+      textMain: '#faf5ff',
+      textMuted: '#e9d5ff',
+      textDim: '#c084fc',
+      badgeBg: 'rgba(192, 132, 252, 0.18)',
+    },
+    previewColors: ['#130a1c', '#c084fc', '#fbbf24'],
+  },
 };
+
+export const WALLPAPERS = [
+  {
+    id: 'none',
+    name: 'Solid Theme Background',
+    description: 'Clean solid theme background with no pattern',
+    css: 'none',
+  },
+  {
+    id: 'neongrid',
+    name: 'Cyber Neon Grid',
+    description: 'Futuristic glowing grid pattern on dark backdrop',
+    css: 'linear-gradient(to right, rgba(147,51,234,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(147,51,234,0.06) 1px, transparent 1px)',
+    size: '40px 40px',
+  },
+  {
+    id: 'dots',
+    name: 'Cosmic Dot Matrix',
+    description: 'Subtle stardust point pattern for a clean modern look',
+    css: 'radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px)',
+    size: '24px 24px',
+  },
+  {
+    id: 'aurora',
+    name: 'Aurora Glow',
+    description: 'Ethereal glowing aura orbs floating in the background',
+    css: 'radial-gradient(circle at 20% 20%, rgba(147,51,234,0.15) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(59,130,246,0.15) 0%, transparent 50%)',
+  },
+  {
+    id: 'diagonal',
+    name: 'Stealth Diagonal Stripes',
+    description: 'Classic gaming diagonal line hatch texture',
+    css: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0, rgba(255,255,255,0.02) 10px, transparent 0, transparent 20px)',
+  },
+  {
+    id: 'cyberpunk',
+    name: 'Cyberpunk Neon Beam',
+    description: 'Vibrant neon gradient sweep across the screen',
+    css: 'linear-gradient(135deg, rgba(250,204,21,0.08) 0%, rgba(56,189,248,0.08) 50%, rgba(236,72,153,0.08) 100%)',
+  },
+  {
+    id: 'matrix',
+    name: 'Matrix Digital Code',
+    description: 'Subtle vertical digital matrix lines',
+    css: 'linear-gradient(to bottom, rgba(34,197,94,0.04) 1px, transparent 1px)',
+    size: '100% 30px',
+  },
+];
 
 export function applyTheme(themeId) {
   const theme = THEMES[themeId] || THEMES.midnight;

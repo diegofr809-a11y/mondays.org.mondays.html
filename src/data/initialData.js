@@ -61,6 +61,7 @@ export const CLOAK_PRESETS = [
 
 export const DEFAULT_SETTINGS = {
   theme: 'midnight',
+  wallpaper: 'none',
   activeCloak: 'none',
   customCloakTitle: '',
   customCloakFavicon: '',

@@ -13,7 +13,6 @@ export const BottomLeftNav = ({
   activeView,
   onSelectView,
   gamesCount = 2468,
-  isPremium = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef(null);
@@ -86,16 +85,9 @@ export const BottomLeftNav = ({
             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-dim)]">
               #grrmondays
             </span>
-            {isPremium ? (
-              <span className="flex items-center gap-1 text-[10px] font-extrabold text-amber-400 bg-amber-500/15 px-2 py-0.5 rounded-full border border-amber-500/30">
-                <Crown className="w-2.5 h-2.5" />
-                VIP
-              </span>
-            ) : (
-              <span className="text-[10px] font-semibold text-[var(--text-dim)]">
-                500 Free
-              </span>
-            )}
+            <span className="text-[10px] font-semibold text-[var(--text-dim)]">
+              {gamesCount} Unlocked
+            </span>
           </div>
 
           {/* 1. Home / Main (#grrmondays) */}
@@ -157,7 +149,7 @@ export const BottomLeftNav = ({
                   activeView === 'games' ? 'text-white/80' : 'text-[var(--text-dim)]'
                 }`}
               >
-                {isPremium ? `${gamesCount} Games Unlocked` : '500 Free Games'}
+                {gamesCount} Games Unlocked
               </div>
             </div>
           </button>

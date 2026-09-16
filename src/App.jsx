@@ -7,9 +7,8 @@ import {
   saveFavoriteIds,
 } from './utils/storage';
 import { applyTabCloak, triggerPanic } from './utils/cloak';
-import { applyTheme } from './utils/theme';
+import { applyTheme, WALLPAPERS } from './utils/theme';
 import { INITIAL_GAMES } from './data/initialData';
-import { isPremiumUser } from './data/premiumCodes';
 import { BottomLeftNav } from './components/BottomLeftNav';
 import { LucideMainView } from './components/LucideMainView';
 import { LucideHomeView } from './components/LucideHomeView';
@@ -18,7 +17,6 @@ import { LucideSettingsView } from './components/LucideSettingsView';
 import { ProxyBrowser } from './components/ProxyBrowser';
 import { GamePlayerModal } from './components/GamePlayerModal';
 import { AddGameModal } from './components/AddGameModal';
-import { PremiumModal } from './components/PremiumModal';
 import { CheckCircle2, X } from 'lucide-react';
 
 export default function App() {
@@ -30,12 +28,10 @@ export default function App() {
   // Persistent storage state
   const [games, setGames] = useState(getStoredGames);
   const [settings, setSettings] = useState(getStoredSettings);
-  const [isPremium, setIsPremium] = useState(isPremiumUser);
 
   // Modals state
   const [isAddGameModalOpen, setIsAddGameModalOpen] = useState(false);
   const [activeGameToPlay, setActiveGameToPlay] = useState(null);
-  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
 
   // Toast notification
   const [toastMessage, setToastMessage] = useState(null);
@@ -178,8 +174,16 @@ export default function App() {
     showToast('Settings saved');
   };
 
+  const activeWallpaper = WALLPAPERS.find((w) => w.id === (settings.wallpaper || 'none')) || WALLPAPERS[0];
+
   return (
-    <div className="h-screen w-screen overflow-hidden flex bg-[var(--bg-base)] text-[var(--text-main)] font-sans selection:bg-purple-500/30 selection:text-purple-200">
+    <div
+      className="h-screen w-screen overflow-hidden flex bg-[var(--bg-base)] text-[var(--text-main)] font-sans selection:bg-purple-500/30 selection:text-purple-200"
+      style={{
+        backgroundImage: activeWallpaper.css !== 'none' ? activeWallpaper.css : undefined,
+        backgroundSize: activeWallpaper.size || 'auto',
+      }}
+    >
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] text-xs font-semibold text-[var(--text-main)] shadow-2xl animate-fade-in">
@@ -199,7 +203,6 @@ export default function App() {
         activeView={activeView}
         onSelectView={handleSelectView}
         gamesCount={games.length}
-        isPremium={isPremium}
       />
 
       {/* Main Screen / Content Views */}
@@ -224,12 +227,10 @@ export default function App() {
           />
         )}
 
-        {/* 3. Games Library View (500 free / 2,468 total) */}
+        {/* 3. Games Library View */}
         {activeView === 'games' && (
           <LucideGamesView
             games={games}
-            isPremium={isPremium}
-            onOpenPremium={() => handleSelectView('settings', 'vip')}
             onPlayGame={(g) => setActiveGameToPlay(g)}
             onOpenAddGame={() => setIsAddGameModalOpen(true)}
             onToggleFavorite={handleToggleFavorite}
@@ -237,7 +238,7 @@ export default function App() {
           />
         )}
 
-        {/* 4. Settings Page (with Themes and VIP inside) */}
+        {/* 4. Settings Page (with Themes and Wallpapers tabs) */}
         {activeView === 'settings' && (
           <LucideSettingsView
             settings={settings}
@@ -246,13 +247,7 @@ export default function App() {
             onImportGames={handleImportGames}
             onClearGames={handleClearGames}
             onResetLibraryDefaults={handleResetLibraryDefaults}
-            isPremium={isPremium}
             initialTab={settingsInitialTab}
-            onOpenPremium={() => setIsPremiumModalOpen(true)}
-            onPremiumActivated={() => {
-              setIsPremium(isPremiumUser());
-              showToast('VIP status updated!');
-            }}
           />
         )}
       </div>
@@ -272,16 +267,6 @@ export default function App() {
           onRecordPlay={handleRecordPlay}
         />
       )}
-
-      <PremiumModal
-        isOpen={isPremiumModalOpen}
-        onClose={() => setIsPremiumModalOpen(false)}
-        isPremium={isPremium}
-        onPremiumActivated={() => {
-          setIsPremium(isPremiumUser());
-          showToast('VIP status updated!');
-        }}
-      />
     </div>
   );
 }
