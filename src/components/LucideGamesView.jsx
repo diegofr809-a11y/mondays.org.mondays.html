@@ -24,6 +24,7 @@ export const LucideGamesView = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [displayLimit, setDisplayLimit] = useState(72);
+  const [failedImages, setFailedImages] = useState({});
 
   // Filter games based on category, search, and favorites
   const filteredGames = useMemo(() => {
@@ -176,19 +177,24 @@ export const LucideGamesView = ({
                     onClick={() => handleGameClick(game)}
                     className="w-full aspect-video rounded-lg bg-black/40 border border-[var(--border-color)] relative flex items-center justify-center cursor-pointer overflow-hidden"
                   >
-                    {game.thumbnailUrl ? (
+                    {game.thumbnailUrl && !failedImages[game.id] ? (
                       <img
                         src={game.thumbnailUrl}
                         alt={game.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
                         referrerPolicy="no-referrer"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
+                        onError={() => {
+                          setFailedImages((prev) => ({ ...prev, [game.id]: true }));
                         }}
                       />
                     ) : (
-                      <Gamepad2 className="w-6 h-6 text-[var(--text-dim)]" />
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#1b202c] to-[#10131a] p-2 text-center select-none">
+                        <Gamepad2 className="w-6 h-6 text-[var(--accent-color)] opacity-75 mb-1" />
+                        <span className="text-[10px] font-bold text-[var(--text-dim)] uppercase tracking-wider line-clamp-1 max-w-[90%]">
+                          {game.title}
+                        </span>
+                      </div>
                     )}
 
                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">

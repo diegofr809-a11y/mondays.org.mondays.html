@@ -199,6 +199,11 @@ export const GameGrid = ({
                       src={game.thumbnailUrl}
                       alt={game.title}
                       className="w-full h-full object-cover"
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
                     />
                   ) : (
                     <div className="text-[#556075] group-hover:text-emerald-400 transition-colors">

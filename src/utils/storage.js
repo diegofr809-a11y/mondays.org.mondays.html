@@ -6,7 +6,7 @@ import {
 } from '../data/initialData';
 
 const STORAGE_KEYS = {
-  GAMES: 'grrmondays_games_library_v3',
+  GAMES: 'grrmondays_games_library_v4',
   SETTINGS: 'grrmondays_app_settings_v2',
   REQUESTS: 'grrmondays_game_requests_v2',
   SHORTCUTS: 'grrmondays_shortcuts_v2',
@@ -38,23 +38,26 @@ export const getStoredGames = () => {
     const favsRaw = localStorage.getItem(STORAGE_KEYS.FAVORITES);
     const favSet = new Set(favsRaw ? JSON.parse(favsRaw) : []);
 
-    // Check v3, or fall back to previous v2 storage to migrate user data
-    const rawV3 = localStorage.getItem(STORAGE_KEYS.GAMES);
+    // Check v4, or fall back to previous v3/v2 storage to migrate user data
+    const rawV4 = localStorage.getItem(STORAGE_KEYS.GAMES);
+    const rawV3 = localStorage.getItem('grrmondays_games_library_v3');
     const rawV2 = localStorage.getItem('grrmondays_games_library_v2');
-    const raw = rawV3 || rawV2;
+    const raw = rawV4 || rawV3 || rawV2;
 
     const savedGames = raw ? JSON.parse(raw) : [];
     const savedMap = new Map();
     if (Array.isArray(savedGames)) {
       for (const g of savedGames) {
         if (g && g.id) {
+          // Exclude any games from blocked domain
+          if (g.url && g.url.includes('theavancehotel.com')) continue;
           savedMap.set(g.id, g);
           if (g.isFavorite) favSet.add(g.id);
         }
       }
     }
 
-    // Always ensure all INITIAL_GAMES (2,468 games) are present
+    // Always ensure all INITIAL_GAMES are present
     const initialIdSet = new Set(INITIAL_GAMES.map((g) => g.id));
 
     // 1. Seed/update all built-in games, merging any user favorites or custom play stats
@@ -71,6 +74,7 @@ export const getStoredGames = () => {
     const customUserGames = [];
     for (const [id, g] of savedMap.entries()) {
       if (!initialIdSet.has(id)) {
+        if (g.url && g.url.includes('theavancehotel.com')) continue;
         customUserGames.push({
           ...g,
           isFavorite: favSet.has(g.id) || g.isFavorite,
@@ -80,13 +84,12 @@ export const getStoredGames = () => {
 
     const finalLibrary = [...mergedInitial, ...customUserGames];
 
-    // Save back to v3 and clear old legacy key
+    // Save back to v4 and clear old legacy keys
     localStorage.setItem(STORAGE_KEYS.GAMES, JSON.stringify(finalLibrary));
-    if (rawV2 && rawV2 !== rawV3) {
-      try {
-        localStorage.removeItem('grrmondays_games_library_v2');
-      } catch (e) {}
-    }
+    try {
+      localStorage.removeItem('grrmondays_games_library_v3');
+      localStorage.removeItem('grrmondays_games_library_v2');
+    } catch (e) {}
 
     return finalLibrary;
   } catch (err) {
