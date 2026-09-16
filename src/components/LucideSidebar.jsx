@@ -1,10 +1,10 @@
 import React from 'react';
 import {
   Home,
-  Sparkles,
   Gamepad2,
   Settings,
 } from 'lucide-react';
+import { TED_IMAGE_BASE64 } from '../assets/tedImage';
 
 export const LucideSidebar = ({
   activeView,
@@ -25,10 +25,13 @@ export const LucideSidebar = ({
           title="grrmondays Main"
         >
           <img
-            src={`${import.meta.env.BASE_URL}image-removebg-preview.png`}
+            src={TED_IMAGE_BASE64}
             alt="Ted Bear Logo"
-            referrerPolicy="no-referrer"
             className="w-full h-full object-contain filter drop-shadow-xs"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = './image-removebg-preview.png';
+            }}
           />
         </button>
       </div>
@@ -61,20 +64,6 @@ export const LucideSidebar = ({
         >
           <Gamepad2 className="w-4 h-4" />
           <span className="text-[9px] font-medium leading-none">Games</span>
-        </button>
-
-        {/* AI */}
-        <button
-          onClick={() => onSelectView('ai')}
-          className={`w-11 py-2 rounded-lg flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
-            activeView === 'ai'
-              ? 'text-[var(--accent-color)] bg-[var(--bg-hover)] border border-[var(--border-color)] shadow-xs'
-              : 'text-[var(--text-dim)] hover:text-[var(--text-main)] hover:bg-[var(--bg-hover)]'
-          }`}
-          title="grrmondays AI"
-        >
-          <Sparkles className="w-4 h-4" />
-          <span className="text-[9px] font-medium leading-none">AI</span>
         </button>
 
         {/* Settings */}

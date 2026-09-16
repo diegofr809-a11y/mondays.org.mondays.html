@@ -31,4 +31,15 @@ if (fs.existsSync('dist')) {
   copyDir('dist', 'docs');
 }
 
+// 4. Ensure grrmondays-source.zip is in dist and docs
+if (fs.existsSync('public/grrmondays-source.zip')) {
+  if (fs.existsSync('dist')) {
+    fs.copyFileSync('public/grrmondays-source.zip', 'dist/grrmondays-source.zip');
+  }
+  if (fs.existsSync('docs')) {
+    fs.copyFileSync('public/grrmondays-source.zip', 'docs/grrmondays-source.zip');
+  }
+  fs.copyFileSync('public/grrmondays-source.zip', 'grrmondays-source.zip');
+}
+
 console.log('Successfully prepared GitHub Pages assets (dist, docs, and root assets)');

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Gamepad2, Sparkles, Volume2 } from 'lucide-react';
+import { Gamepad2, Settings, Volume2 } from 'lucide-react';
+import { TED_IMAGE_BASE64 } from '../assets/tedImage';
 
 export const LucideMainView = ({ onSelectView, gamesCount = 2468 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -86,20 +87,23 @@ export const LucideMainView = ({ onSelectView, gamesCount = 2468 }) => {
           <button
             onClick={handleBearClick}
             className="relative p-1 outline-none cursor-pointer border-none bg-transparent transition-transform active:scale-98"
-            title="Ted"
+            title="Click Ted to hear Grrr Mondays"
           >
             <div className="relative w-64 h-64 sm:w-72 sm:h-72 bg-transparent flex items-center justify-center">
               <img
-                src={`${import.meta.env.BASE_URL}image-removebg-preview.png`}
+                src={TED_IMAGE_BASE64}
                 alt="Ted"
-                referrerPolicy="no-referrer"
                 className="w-full h-full object-contain filter drop-shadow-2xl select-none pointer-events-none"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = './image-removebg-preview.png';
+                }}
               />
             </div>
           </button>
         </div>
 
-        {/* Navigation Buttons directly below the bear: Games and AI */}
+        {/* Navigation Buttons directly below the bear: Games and Settings */}
         <div className="grid grid-cols-2 gap-3.5 w-full max-w-sm">
           {/* Games Button */}
           <button
@@ -119,20 +123,20 @@ export const LucideMainView = ({ onSelectView, gamesCount = 2468 }) => {
             </div>
           </button>
 
-          {/* AI Button */}
+          {/* Settings Button */}
           <button
-            onClick={() => onSelectView('ai')}
+            onClick={() => onSelectView('settings')}
             className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] hover:border-[var(--accent-color)]/50 transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer group text-center"
           >
             <div className="w-10 h-10 rounded-lg bg-[var(--bg-base)] border border-[var(--border-color)] flex items-center justify-center text-[var(--accent-color)] group-hover:scale-110 transition-transform">
-              <Sparkles className="w-5 h-5" />
+              <Settings className="w-5 h-5" />
             </div>
             <div>
               <div className="font-semibold text-sm text-[var(--text-main)] group-hover:text-[var(--accent-color)] transition-colors">
-                grrmondays AI
+                Settings
               </div>
               <div className="text-[11px] text-[var(--text-dim)]">
-                AI Assistant
+                Controls & Audio
               </div>
             </div>
           </button>

@@ -68,9 +68,17 @@ export const DEFAULT_SETTINGS = {
   panicUrl: 'https://classroom.google.com',
   defaultSearchEngine: 'duckduckgo',
   proxyEngineMode: 'direct',
-  aiTemperature: 0.7,
-  aiSystemInstructions: 'You are grrmondays AI, a sharp, helpful, concise assistant.',
-  aiCustomApiKey: '',
+  // Audio & Ted speech
+  tedSoundEnabled: true,
+  audioVolume: 80,
+  soundEffectsEnabled: true,
+  // Gameplay & Performance
+  autoFullscreen: false,
+  openInNewTab: false,
+  compactCardGrid: false,
+  disableAnimations: false,
+  confirmBeforeLeave: false,
+  highPerformanceMode: false,
 };
 
 export const INITIAL_GAMES = gamesData;

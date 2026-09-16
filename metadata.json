@@ -1,6 +1,6 @@
 {
   "name": "grrmondays",
-  "description": "grrmondays gaming hub, web browser, games library, and AI assistant with custom themes and stealth tab cloaking.",
+  "description": "grrmondays gaming hub with 2,468 unblocked games, Ted interactive sound, custom themes, stealth tab cloaking, and complete offline source downloads.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

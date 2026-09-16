@@ -13,7 +13,6 @@ import { LucideSidebar } from './components/LucideSidebar';
 import { LucideMainView } from './components/LucideMainView';
 import { LucideHomeView } from './components/LucideHomeView';
 import { LucideGamesView } from './components/LucideGamesView';
-import { LucideAiView } from './components/LucideAiView';
 import { LucideSettingsView } from './components/LucideSettingsView';
 import { ProxyBrowser } from './components/ProxyBrowser';
 import { GamePlayerModal } from './components/GamePlayerModal';
@@ -85,6 +84,17 @@ export default function App() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [settings.panicKey, settings.panicUrl]);
+
+  // Anti-close safety confirmation listener
+  useEffect(() => {
+    if (!settings.confirmBeforeLeave) return;
+    const handleBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [settings.confirmBeforeLeave]);
 
   // Handle Search or URL navigation from Home Omnibar
   const handleHomeSearchOrNavigate = (queryOrUrl) => {
@@ -208,7 +218,7 @@ export default function App() {
           />
         )}
 
-        {/* 3. Games Library View (559 Games) */}
+        {/* 3. Games Library View (2468 Games) */}
         {activeView === 'games' && (
           <LucideGamesView
             games={games}
@@ -219,10 +229,7 @@ export default function App() {
           />
         )}
 
-        {/* 4. AI Assistant View (Gemini AI) */}
-        {activeView === 'ai' && <LucideAiView settings={settings} />}
-
-        {/* 5. Settings Page */}
+        {/* 4. Settings Page */}
         {activeView === 'settings' && (
           <LucideSettingsView
             settings={settings}
