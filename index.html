@@ -42,14 +42,15 @@
         if (entry) {
           entry.remove();
         }
+        var timestamp = Date.now();
         var s = document.createElement('script');
         s.type = 'module';
         s.crossOrigin = 'anonymous';
-        s.src = './assets/index.js';
+        s.src = './assets/index.js?v=' + timestamp;
         document.head.appendChild(s);
         var l = document.createElement('link');
         l.rel = 'stylesheet';
-        l.href = './assets/index.css';
+        l.href = './assets/index.css?v=' + timestamp;
         document.head.appendChild(l);
       }
     </script>

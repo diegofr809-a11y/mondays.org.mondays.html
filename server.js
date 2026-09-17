@@ -294,8 +294,17 @@ async function startServer() {
   const distIndexHtml = path.join(distPath, 'index.html');
 
   if (process.env.NODE_ENV === 'production' && fs.existsSync(distIndexHtml)) {
-    app.use(express.static(distPath));
+    app.use(
+      express.static(distPath, {
+        etag: false,
+        maxAge: 0,
+        setHeaders: (res) => {
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        },
+      })
+    );
     app.get('*', (req, res) => {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.sendFile(distIndexHtml);
     });
   } else {
