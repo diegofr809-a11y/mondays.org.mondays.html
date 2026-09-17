@@ -1,10 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Volume2 } from 'lucide-react';
+import { ClockWeatherWidget } from './ClockWeatherWidget';
+import { Settings as SettingsIcon, Sliders } from 'lucide-react';
+import { sounds } from '../utils/sound';
 
-export const LucideMainView = () => {
+export const LucideMainView = ({ settings = {}, onOpenSettings }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [playCount, setPlayCount] = useState(0);
   const timerRef = useRef(null);
+
+  const showClock = settings.showMainClock !== false;
 
   useEffect(() => {
     return () => {
@@ -14,8 +18,10 @@ export const LucideMainView = () => {
     };
   }, []);
 
-  // Play audio clip for 3 seconds on user click
+  // Play audio clip for 3 seconds on user click without showing the speech bubble
   const handleTextClick = () => {
+    sounds.playClick(settings.soundEffectsEnabled);
+
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
@@ -29,11 +35,15 @@ export const LucideMainView = () => {
   };
 
   return (
-    <main className="flex-1 h-full overflow-y-auto flex flex-col items-center justify-center p-6 select-none relative bg-[var(--bg-base)]">
+    <main
+      className={`flex-1 h-full overflow-y-auto flex flex-col items-center p-6 select-none relative bg-[var(--bg-base)] transition-all duration-300 ${
+        showClock ? 'justify-start pt-12 sm:pt-16' : 'justify-center'
+      }`}
+    >
       {/* Ambient background glow */}
-      <div className="absolute w-96 h-96 rounded-full bg-[var(--accent-color)]/5 blur-3xl pointer-events-none -top-10" />
+      <div className="absolute w-[32rem] h-[32rem] rounded-full bg-[var(--accent-color)]/5 blur-3xl pointer-events-none -top-10" />
 
-      {/* Hidden audio player */}
+      {/* Hidden audio player - plays on click */}
       {isPlaying && (
         <div className="sr-only pointer-events-none" aria-hidden="true">
           <iframe
@@ -46,31 +56,13 @@ export const LucideMainView = () => {
         </div>
       )}
 
-      <div className="flex flex-col items-center max-w-lg w-full z-10 space-y-6">
-        {/* Animated Speech Bubble when clicked */}
-        <div
-          className={`transition-all duration-300 transform ${
-            isPlaying
-              ? 'opacity-100 scale-100 translate-y-0'
-              : 'opacity-0 scale-90 translate-y-2 pointer-events-none'
-          }`}
-        >
-          <div className="relative bg-[var(--bg-card)] border-2 border-[var(--accent-color)] text-[var(--text-main)] px-5 py-2.5 rounded-2xl shadow-xl flex items-center gap-2.5">
-            <Volume2 className="w-4 h-4 text-[var(--accent-color)] animate-pulse" />
-            <span className="font-extrabold text-sm tracking-wide text-[var(--accent-color)]">
-              #Grrr... Mondays!
-            </span>
-            <div className="flex gap-0.5 items-center">
-              <span className="w-1 h-3 bg-[var(--accent-color)] rounded-full animate-bounce [animation-delay:-0.3s]" />
-              <span className="w-1 h-4 bg-[var(--accent-color)] rounded-full animate-bounce [animation-delay:-0.15s]" />
-              <span className="w-1 h-3 bg-[var(--accent-color)] rounded-full animate-bounce" />
-            </div>
-            {/* Pointer triangle */}
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-[var(--bg-card)] border-r-2 border-b-2 border-[var(--accent-color)] transform rotate-45" />
-          </div>
-        </div>
-
-        {/* Big Clickable #grrmondays Text */}
+      {/* Main Container */}
+      <div
+        className={`flex flex-col items-center max-w-lg w-full z-10 transition-all duration-500 ${
+          showClock ? 'space-y-8 mt-2' : 'space-y-4'
+        }`}
+      >
+        {/* Clickable #grrmondays Text (No speech bubble popup) */}
         <button
           onClick={handleTextClick}
           className="group relative cursor-pointer outline-none border-none bg-transparent transition-transform active:scale-95 text-center"
@@ -79,10 +71,38 @@ export const LucideMainView = () => {
           <h1 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight text-[var(--text-main)] group-hover:text-[var(--accent-color)] transition-colors select-none">
             #grrmondays
           </h1>
-          <p className="text-xs text-[var(--text-dim)] mt-2 font-medium">
-            (click text to play sound)
-          </p>
+          <div
+            className={`h-1 w-24 mx-auto rounded-full mt-2 transition-all duration-300 ${
+              isPlaying
+                ? 'bg-[var(--accent-color)] w-36 shadow-lg shadow-[var(--accent-color)]/50'
+                : 'bg-transparent group-hover:bg-[var(--accent-color)]/40 group-hover:w-28'
+            }`}
+          />
         </button>
+
+        {/* Live Clock & Weather Widget (rendered only if showMainClock setting is enabled) */}
+        {showClock && (
+          <div className="w-full flex flex-col items-center animate-fade-in">
+            <ClockWeatherWidget
+              clockFormat={settings.clockFormat || '12h'}
+              showSeconds={settings.showSeconds !== false}
+              showWeather={settings.showWeather !== false}
+              tempUnit={settings.tempUnit || 'F'}
+              weatherLocation={settings.weatherLocation || 'Local City'}
+            />
+
+            {/* Subtle setting hint link */}
+            {onOpenSettings && (
+              <button
+                onClick={() => onOpenSettings('clock')}
+                className="mt-4 flex items-center gap-1.5 text-[11px] text-[var(--text-dim)] hover:text-[var(--text-main)] transition-colors cursor-pointer px-3 py-1 rounded-full hover:bg-[var(--bg-surface)]"
+              >
+                <Sliders className="w-3 h-3 text-[var(--accent-color)]" />
+                <span>Clock & Display Settings</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </main>
   );

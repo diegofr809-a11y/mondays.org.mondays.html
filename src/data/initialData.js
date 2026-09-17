@@ -62,6 +62,17 @@ export const CLOAK_PRESETS = [
 export const DEFAULT_SETTINGS = {
   theme: 'midnight',
   wallpaper: 'none',
+  customWallpaperUrl: '',
+  customAccentColor: '',
+  customCursor: 'default',
+  // Main view & clock widget
+  showMainClock: true,
+  clockFormat: '12h',
+  showSeconds: true,
+  showWeather: true,
+  tempUnit: 'F',
+  weatherLocation: 'Local City',
+  // Disguise & Cloak
   activeCloak: 'none',
   customCloakTitle: '',
   customCloakFavicon: '',
@@ -69,7 +80,7 @@ export const DEFAULT_SETTINGS = {
   panicUrl: 'https://classroom.google.com',
   defaultSearchEngine: 'duckduckgo',
   proxyEngineMode: 'direct',
-  // Audio & Ted speech
+  // Audio & Sound Effects
   tedSoundEnabled: true,
   audioVolume: 80,
   soundEffectsEnabled: true,

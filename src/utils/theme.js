@@ -421,15 +421,48 @@ export const THEMES = {
   },
 };
 
+export const ACCENT_PRESETS = [
+  { id: 'purple', name: 'Electric Purple', hex: '#9333ea' },
+  { id: 'cyan', name: 'Cyber Cyan', hex: '#06b6d4' },
+  { id: 'emerald', name: 'Emerald Green', hex: '#10b981' },
+  { id: 'blue', name: 'Vivid Blue', hex: '#3b82f6' },
+  { id: 'sunset', name: 'Sunset Orange', hex: '#f97316' },
+  { id: 'crimson', name: 'Crimson Red', hex: '#ef4444' },
+  { id: 'pink', name: 'Neon Pink', hex: '#ec4899' },
+  { id: 'yellow', name: 'Neon Yellow', hex: '#eab308' },
+  { id: 'teal', name: 'Mint Teal', hex: '#14b8a6' },
+];
+
+export const CURSOR_PRESETS = [
+  { id: 'default', name: 'Standard Arrow', description: 'Clean default system cursor' },
+  { id: 'crosshair', name: 'Tactical Crosshair', description: 'Precision crosshair gaming reticle' },
+  { id: 'dot', name: 'Minimalist Dot', description: 'Sleek modern red/accent dot' },
+  { id: 'glow', name: 'Neon Glow', description: 'Smooth glowing pointer' },
+  { id: 'retro', name: 'Retro Pixel', description: 'Classic 8-bit arcade style arrow' },
+  { id: 'sword', name: 'Knight Sword', description: 'Fantasy game dagger / blade pointer' },
+];
+
+export const WALLPAPER_CATEGORIES = [
+  { id: 'all', name: 'All Wallpapers' },
+  { id: 'minimal', name: 'Minimal & Grid' },
+  { id: 'neon', name: 'Cyberpunk & Neon' },
+  { id: 'space', name: 'Space & Nebula' },
+  { id: 'retro', name: 'Retro & Pixel' },
+  { id: 'nature', name: 'Nature & Landscape' },
+  { id: 'custom', name: 'Custom Image URL' },
+];
+
 export const WALLPAPERS = [
   {
     id: 'none',
+    category: 'minimal',
     name: 'Solid Theme Background',
     description: 'Clean solid theme background with no pattern',
     css: 'none',
   },
   {
     id: 'neongrid',
+    category: 'minimal',
     name: 'Cyber Neon Grid',
     description: 'Futuristic glowing grid pattern on dark backdrop',
     css: 'linear-gradient(to right, rgba(147,51,234,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(147,51,234,0.06) 1px, transparent 1px)',
@@ -437,6 +470,7 @@ export const WALLPAPERS = [
   },
   {
     id: 'dots',
+    category: 'minimal',
     name: 'Cosmic Dot Matrix',
     description: 'Subtle stardust point pattern for a clean modern look',
     css: 'radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px)',
@@ -444,32 +478,71 @@ export const WALLPAPERS = [
   },
   {
     id: 'aurora',
+    category: 'neon',
     name: 'Aurora Glow',
     description: 'Ethereal glowing aura orbs floating in the background',
-    css: 'radial-gradient(circle at 20% 20%, rgba(147,51,234,0.15) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(59,130,246,0.15) 0%, transparent 50%)',
+    css: 'radial-gradient(circle at 20% 20%, rgba(147,51,234,0.18) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(59,130,246,0.18) 0%, transparent 50%)',
   },
   {
     id: 'diagonal',
+    category: 'retro',
     name: 'Stealth Diagonal Stripes',
     description: 'Classic gaming diagonal line hatch texture',
     css: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0, rgba(255,255,255,0.02) 10px, transparent 0, transparent 20px)',
   },
   {
     id: 'cyberpunk',
+    category: 'neon',
     name: 'Cyberpunk Neon Beam',
     description: 'Vibrant neon gradient sweep across the screen',
     css: 'linear-gradient(135deg, rgba(250,204,21,0.08) 0%, rgba(56,189,248,0.08) 50%, rgba(236,72,153,0.08) 100%)',
   },
   {
     id: 'matrix',
+    category: 'retro',
     name: 'Matrix Digital Code',
     description: 'Subtle vertical digital matrix lines',
     css: 'linear-gradient(to bottom, rgba(34,197,94,0.04) 1px, transparent 1px)',
     size: '100% 30px',
   },
+  {
+    id: 'deepspace',
+    category: 'space',
+    name: 'Deep Space Galaxy',
+    description: 'Cosmic deep nebula view with star clusters',
+    imageUrl: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=1920&q=80',
+  },
+  {
+    id: 'cybercity',
+    category: 'neon',
+    name: 'Neo Tokyo Night City',
+    description: 'Vibrant cyberpunk metropolis skyline bathed in purple rain',
+    imageUrl: 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1920&q=80',
+  },
+  {
+    id: 'retroarcade',
+    category: 'retro',
+    name: 'Synthwave Highway 80s',
+    description: 'Retro 80s wireframe sunset road vanishing horizon',
+    imageUrl: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=1920&q=80',
+  },
+  {
+    id: 'naturemountain',
+    category: 'nature',
+    name: 'Misty Alpine Mountains',
+    description: 'Calm moody mountain peaks under twilight fog',
+    imageUrl: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1920&q=80',
+  },
+  {
+    id: 'japanforest',
+    category: 'nature',
+    name: 'Kyoto Bamboo Forest',
+    description: 'Peaceful zen forest with ambient sunlight filtering through',
+    imageUrl: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=1920&q=80',
+  },
 ];
 
-export function applyTheme(themeId) {
+export function applyTheme(themeId, customAccent = '', customCursor = 'default') {
   const theme = THEMES[themeId] || THEMES.midnight;
   const root = document.documentElement;
 
@@ -480,14 +553,117 @@ export function applyTheme(themeId) {
   root.style.setProperty('--bg-hover', theme.colors.bgHover);
   root.style.setProperty('--border-color', theme.colors.border);
   root.style.setProperty('--border-hover', theme.colors.borderHover);
-  root.style.setProperty('--accent-color', theme.colors.accent);
-  root.style.setProperty('--accent-hover', theme.colors.accentHover);
-  root.style.setProperty('--accent-glow', theme.colors.accentGlow);
+
+  // Custom Accent or Theme Accent
+  const activeAccent = customAccent && customAccent.trim().startsWith('#')
+    ? customAccent.trim()
+    : theme.colors.accent;
+
+  root.style.setProperty('--accent-color', activeAccent);
+  root.style.setProperty('--accent-hover', activeAccent);
+  root.style.setProperty('--accent-glow', `${activeAccent}55`);
+  root.style.setProperty('--badge-bg', `${activeAccent}22`);
+
   root.style.setProperty('--text-main', theme.colors.textMain);
   root.style.setProperty('--text-muted', theme.colors.textMuted);
   root.style.setProperty('--text-dim', theme.colors.textDim);
-  root.style.setProperty('--badge-bg', theme.colors.badgeBg);
 
   // Set data-theme attribute
   root.setAttribute('data-theme', themeId);
+
+  // Apply custom cursor
+  applyCursor(customCursor, activeAccent);
 }
+
+export function svgToCursorDataUri(svgString) {
+  try {
+    const cleanSvg = svgString.trim();
+    if (typeof window !== 'undefined' && typeof window.btoa === 'function') {
+      const b64 = window.btoa(unescape(encodeURIComponent(cleanSvg)));
+      return `url('data:image/svg+xml;base64,${b64}')`;
+    }
+  } catch (err) {
+    console.error('Error converting SVG cursor to base64:', err);
+  }
+  return `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString.trim())}")`;
+}
+
+export function getCursorSvg(cursorType, accentColor = '#9333ea') {
+  const accent = accentColor || '#9333ea';
+
+  if (cursorType === 'crosshair') {
+    return {
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="${accent}" stroke-width="1.6" stroke-opacity="0.9"/><circle cx="12" cy="12" r="1.5" fill="#ffffff"/><line x1="12" y1="1" x2="12" y2="7" stroke="${accent}" stroke-width="1.8" stroke-linecap="round"/><line x1="12" y1="17" x2="12" y2="23" stroke="${accent}" stroke-width="1.8" stroke-linecap="round"/><line x1="1" y1="12" x2="7" y2="12" stroke="${accent}" stroke-width="1.8" stroke-linecap="round"/><line x1="17" y1="12" x2="23" y2="12" stroke="${accent}" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+      hotspotX: 12,
+      hotspotY: 12,
+      fallback: 'crosshair',
+    };
+  }
+
+  if (cursorType === 'dot') {
+    return {
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="${accent}" fill-opacity="0.35"/><circle cx="10" cy="10" r="4.5" fill="${accent}" stroke="#ffffff" stroke-width="1.5"/><circle cx="10" cy="10" r="1.5" fill="#ffffff"/></svg>`,
+      hotspotX: 10,
+      hotspotY: 10,
+      fallback: 'crosshair',
+    };
+  }
+
+  if (cursorType === 'glow') {
+    return {
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28"><path d="M4 2 L4 22 L9 17 L13 25 L16 23.5 L12 15.5 L19 15.5 Z" fill="${accent}" fill-opacity="0.45" stroke="${accent}" stroke-width="3" stroke-linejoin="round"/><path d="M4 2 L4 22 L9 17 L13 25 L16 23.5 L12 15.5 L19 15.5 Z" fill="${accent}" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/><circle cx="4" cy="2" r="1.5" fill="#ffffff"/></svg>`,
+      hotspotX: 4,
+      hotspotY: 2,
+      fallback: 'default',
+    };
+  }
+
+  if (cursorType === 'retro') {
+    return {
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" shape-rendering="crispEdges"><path d="M1 1v17h4v-3h2v3h2v2h2v-4h-2v-2h3v-2h-2v-2h-2v-2h-2V5h-2V3h-2V1H1z" fill="#000000"/><path d="M2 2v14h2v-3h2v-1h2v-2h2v-2h-2V6h-2V4h-2V2H2z" fill="${accent}"/><path d="M2 2v12h1V4h2V3h2V2H2z" fill="#ffffff"/></svg>`,
+      hotspotX: 1,
+      hotspotY: 1,
+      fallback: 'default',
+    };
+  }
+
+  if (cursorType === 'sword') {
+    return {
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28"><path d="M2 2 L13 9 L9 13 Z" fill="#ffffff" stroke="#000000" stroke-width="0.8"/><path d="M2 2 L9 13 L13 13 L13 9 Z" fill="${accent}" stroke="#000000" stroke-width="0.8"/><line x1="2" y1="2" x2="11" y2="11" stroke="#ffffff" stroke-width="1.2"/><rect x="8" y="14" width="9" height="3" rx="1" transform="rotate(-45 12.5 15.5)" fill="#facc15" stroke="#000000" stroke-width="0.8"/><line x1="14" y1="14" x2="20" y2="20" stroke="#92400e" stroke-width="3" stroke-linecap="round"/><line x1="15" y1="15" x2="19" y2="19" stroke="#fef08a" stroke-width="1"/><circle cx="21" cy="21" r="2.5" fill="#facc15" stroke="#000000" stroke-width="0.8"/><circle cx="2" cy="2" r="1.5" fill="#ffffff"/></svg>`,
+      hotspotX: 2,
+      hotspotY: 2,
+      fallback: 'default',
+    };
+  }
+
+  return null;
+}
+
+export function applyCursor(cursorType, accentColor = '#9333ea') {
+  const styleId = 'grrmondays-custom-cursor';
+  let el = document.getElementById(styleId);
+  if (!el) {
+    el = document.createElement('style');
+    el.id = styleId;
+    document.head.appendChild(el);
+  }
+
+  if (!cursorType || cursorType === 'default') {
+    el.innerHTML = '';
+    return;
+  }
+
+  const cursorData = getCursorSvg(cursorType, accentColor);
+  if (!cursorData) {
+    if (cursorType === 'crosshair') {
+      el.innerHTML = `html, body, *, button, a, input, select, textarea { cursor: crosshair !important; }`;
+    } else {
+      el.innerHTML = '';
+    }
+    return;
+  }
+
+  const cursorUri = svgToCursorDataUri(cursorData.svg);
+  el.innerHTML = `html, body, *, button, a, input, select, textarea { cursor: ${cursorUri} ${cursorData.hotspotX} ${cursorData.hotspotY}, ${cursorData.fallback} !important; }`;
+}
+

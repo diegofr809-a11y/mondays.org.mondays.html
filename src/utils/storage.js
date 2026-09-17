@@ -12,6 +12,124 @@ const STORAGE_KEYS = {
   SHORTCUTS: 'grrmondays_shortcuts_v2',
   FAVORITES: 'grrmondays_favorite_ids_v2',
   APP_FAVORITES: 'grrmondays_app_favorite_ids_v1',
+  RECENTLY_OPENED: 'grrmondays_recently_opened_v2',
+  PROFILE: 'grrmondays_user_profile_v2',
+  NOTIFICATIONS: 'grrmondays_notifications_v2',
+};
+
+export const INITIAL_NOTIFICATIONS = [
+  {
+    id: 'notif-1',
+    title: 'Welcome to grrmondays v4 Update',
+    message: 'Added live clock, home dashboard, universal search, custom accent picker, and wallpaper browser.',
+    timestamp: 'Just now',
+    type: 'feature',
+    read: false,
+  },
+  {
+    id: 'notif-2',
+    title: 'Cleaned & Rescued Games Catalog',
+    message: 'Removed 541 broken domain links. 1,930+ games are verified and running at high speed.',
+    timestamp: '1 hour ago',
+    type: 'system',
+    read: false,
+  },
+  {
+    id: 'notif-3',
+    title: 'Custom Cursor & Audio FX',
+    message: 'Head over to Settings > Audio & Cursors to enable Web Audio UI sounds and retro gaming reticles.',
+    timestamp: 'Today',
+    type: 'tip',
+    read: true,
+  },
+];
+
+export const getStoredNotifications = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS);
+    if (!raw) return INITIAL_NOTIFICATIONS;
+    return JSON.parse(raw);
+  } catch {
+    return INITIAL_NOTIFICATIONS;
+  }
+};
+
+export const saveStoredNotifications = (notifs) => {
+  try {
+    localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(notifs));
+  } catch (err) {
+    console.error('Failed to save notifications', err);
+  }
+};
+
+export const getStoredRecentlyOpened = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.RECENTLY_OPENED);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+export const addStoredRecentlyOpened = (item) => {
+  if (!item || !item.id) return [];
+  try {
+    const current = getStoredRecentlyOpened();
+    const filtered = current.filter((x) => x.id !== item.id);
+    const updated = [
+      {
+        ...item,
+        openedAt: Date.now(),
+      },
+      ...filtered,
+    ].slice(0, 24); // Keep top 24 recently opened
+    localStorage.setItem(STORAGE_KEYS.RECENTLY_OPENED, JSON.stringify(updated));
+    return updated;
+  } catch {
+    return [];
+  }
+};
+
+export const clearStoredRecentlyOpened = () => {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.RECENTLY_OPENED);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export const getStoredUserProfile = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.PROFILE);
+    if (!raw) {
+      return {
+        username: 'GrrPlayer',
+        title: 'Retro Gamer',
+        bio: 'Enjoying unblocked games on grrmondays.',
+        avatar: 'gamepad',
+        avatarColor: '#9333ea',
+      };
+    }
+    return JSON.parse(raw);
+  } catch {
+    return {
+      username: 'GrrPlayer',
+      title: 'Retro Gamer',
+      bio: 'Enjoying unblocked games on grrmondays.',
+      avatar: 'gamepad',
+      avatarColor: '#9333ea',
+    };
+  }
+};
+
+export const saveStoredUserProfile = (profile) => {
+  try {
+    localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(profile));
+  } catch (err) {
+    console.error('Failed to save profile', err);
+  }
 };
 
 export const getStoredShortcuts = () => {

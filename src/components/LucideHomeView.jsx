@@ -1,52 +1,380 @@
-import React, { useState } from 'react';
-import { Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+  Search,
+  AlertCircle,
+  Clock,
+  Heart,
+  Gamepad2,
+  Globe,
+  Sparkles,
+  ArrowRight,
+  Flame,
+  Play,
+  RotateCcw,
+  Sliders,
+  Bell,
+  Layers,
+} from 'lucide-react';
+import { ClockWeatherWidget } from './ClockWeatherWidget';
+import { DEFAULT_SHORTCUTS } from '../data/initialData';
+import { getStoredRecentlyOpened, clearStoredRecentlyOpened } from '../utils/storage';
+import { sounds } from '../utils/sound';
 
-export const LucideHomeView = ({ onSearchOrNavigate }) => {
+export const LucideHomeView = ({
+  games = [],
+  settings = {},
+  onSearchOrNavigate,
+  onPlayGame,
+  onLaunchApp,
+  onOpenSearchModal,
+  onOpenNotifications,
+  unreadNotifsCount = 0,
+  onSelectView,
+}) => {
   const [query, setQuery] = useState('');
+  const [recents, setRecents] = useState([]);
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    setRecents(getStoredRecentlyOpened());
+  }, []);
+
+  const handleSearchSubmit = (e) => {
     e.preventDefault();
-    if (!query.trim()) return;
+    if (!query.trim()) {
+      onOpenSearchModal?.();
+      return;
+    }
+    // If it looks like a query, search or navigate
     onSearchOrNavigate(query.trim());
   };
 
+  const favoriteGames = games.filter((g) => g.isFavorite);
+
+  // Trending fallback items when recents is empty
+  const trendingGames = games
+    .filter((g) => ['Slope', '1v1.LOL', 'Retro Bowl', 'Subway Surfers', 'BitLife', 'Cookie Clicker'].includes(g.title))
+    .slice(0, 6);
+
+  const displayRecents = recents.length > 0 ? recents.slice(0, 8) : trendingGames;
+  const isFallback = recents.length === 0;
+
+  const handleClearRecents = () => {
+    sounds.playClick(settings.soundEffectsEnabled);
+    clearStoredRecentlyOpened();
+    setRecents([]);
+  };
+
   return (
-    <div className="relative flex-1 h-screen flex flex-col items-center justify-center px-4 select-none lucide-bg overflow-hidden">
-      {/* Aurora nebula gradient glow layer matching screenshot */}
-      <div 
-        className="pointer-events-none absolute inset-0 z-0"
+    <div className="relative flex-1 h-screen flex flex-col items-center px-4 sm:px-8 py-6 select-none bg-[var(--bg-base)] overflow-y-auto">
+      {/* Aurora nebula ambient background */}
+      <div
+        className="pointer-events-none fixed inset-0 z-0"
         style={{
-          background: 'radial-gradient(ellipse 65% 55% at 35% 18%, var(--accent-glow) 0%, rgba(56, 12, 115, 0.18) 40%, rgba(6, 5, 11, 0) 75%)'
+          background:
+            'radial-gradient(ellipse 65% 55% at 40% 15%, var(--accent-glow) 0%, rgba(56, 12, 115, 0.12) 40%, rgba(6, 5, 11, 0) 75%)',
         }}
       />
 
-      {/* Main Centered Content */}
-      <div className="relative z-10 w-full max-w-xl flex flex-col items-center -mt-8">
-        {/* 'grrmondays' Logo Title with underline */}
-        <div className="flex flex-col items-center mb-8">
-          <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-[var(--text-main)] select-none">
-            grrmondays
-          </h1>
-          <div 
-            className="h-[2px] w-36 mt-2 rounded-full" 
-            style={{ backgroundColor: 'var(--accent-color)' }}
+      <div className="relative z-10 w-full max-w-4xl flex flex-col space-y-8 pb-16">
+        {/* Top Header Row with Clock Pill & Notification Bell */}
+        <div className="flex items-center justify-between gap-4 pt-2">
+          {/* Compact Clock & Weather Pill */}
+          <ClockWeatherWidget
+            clockFormat={settings.clockFormat || '12h'}
+            showSeconds={false}
+            showWeather={settings.showWeather !== false}
+            tempUnit={settings.tempUnit || 'F'}
+            weatherLocation={settings.weatherLocation || 'Local City'}
+            compact={true}
           />
+
+          {/* Top Actions: Search Trigger & Notifications Bell */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                sounds.playClick(settings.soundEffectsEnabled);
+                onOpenSearchModal?.();
+              }}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] text-xs text-[var(--text-dim)] hover:text-[var(--text-main)] shadow-sm transition-all cursor-pointer"
+            >
+              <Search className="w-3.5 h-3.5 text-[var(--accent-color)]" />
+              <span className="hidden sm:inline">Universal Search</span>
+              <kbd className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-dim)]">
+                /
+              </kbd>
+            </button>
+
+            <button
+              onClick={() => {
+                sounds.playClick(settings.soundEffectsEnabled);
+                onOpenNotifications?.();
+              }}
+              className="relative p-2 rounded-full bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] text-[var(--text-main)] shadow-sm transition-all cursor-pointer"
+              title="Notifications"
+            >
+              <Bell className="w-4 h-4 text-[var(--accent-color)]" />
+              {unreadNotifsCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[var(--accent-color)] text-white text-[9px] font-black flex items-center justify-center animate-pulse">
+                  {unreadNotifsCount}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
 
-        {/* Omnibar Search / Enter URL */}
-        <form onSubmit={handleSubmit} className="w-full">
-          <div className="relative w-full">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-dim)] pointer-events-none" />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search or enter URL"
-              autoFocus
-              className="w-full h-11 pl-11 pr-4 bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] focus:bg-[var(--bg-hover)] border border-[var(--border-color)] focus:border-[var(--accent-color)] rounded-lg text-sm text-[var(--text-main)] placeholder-[var(--text-dim)] outline-none transition-all shadow-xl shadow-black/40"
+        {/* Hero Title & Omnibar Search */}
+        <div className="flex flex-col items-center text-center space-y-4 pt-4 sm:pt-6">
+          <div className="flex flex-col items-center">
+            <h1 className="text-5xl sm:text-6xl font-black tracking-tight text-[var(--text-main)] select-none">
+              grrmondays
+            </h1>
+            <div
+              className="h-1 w-28 mt-2 rounded-full"
+              style={{ backgroundColor: 'var(--accent-color)' }}
             />
           </div>
-        </form>
+
+          <p className="text-xs sm:text-sm text-[var(--text-dim)] max-w-md">
+            Unblocked gaming, stealth cloaking, web apps, and custom tools.
+          </p>
+
+          {/* Omnibar Search Box */}
+          <form onSubmit={handleSearchSubmit} className="w-full max-w-xl">
+            <div
+              onClick={() => onOpenSearchModal?.()}
+              className="relative w-full group cursor-pointer"
+            >
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--accent-color)] pointer-events-none" />
+              <input
+                type="text"
+                readOnly
+                placeholder="Search 1,900+ games, apps, wallpapers... (click or press /)"
+                className="w-full h-12 pl-11 pr-24 bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] hover:border-[var(--accent-color)]/70 rounded-2xl text-xs sm:text-sm text-[var(--text-main)] placeholder-[var(--text-dim)] outline-none transition-all shadow-xl shadow-black/30 cursor-pointer"
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                <span className="text-[10px] font-bold px-2 py-1 rounded-lg bg-[var(--accent-color)] text-white shadow-sm">
+                  Search
+                </span>
+              </div>
+            </div>
+          </form>
+
+          {/* Quick Category Chips */}
+          <div className="flex items-center justify-center gap-2 flex-wrap text-xs pt-1">
+            <button
+              onClick={() => onSelectView('games')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] text-[var(--text-main)] transition-colors cursor-pointer"
+            >
+              <Gamepad2 className="w-3.5 h-3.5 text-purple-400" />
+              <span>All Games ({games.length})</span>
+            </button>
+
+            <button
+              onClick={() => onSelectView('favorites')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] text-[var(--text-main)] transition-colors cursor-pointer"
+            >
+              <Heart className="w-3.5 h-3.5 text-rose-400" />
+              <span>Favorites ({favoriteGames.length})</span>
+            </button>
+
+            <button
+              onClick={() => onSelectView('proxy')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] text-[var(--text-main)] transition-colors cursor-pointer"
+            >
+              <Globe className="w-3.5 h-3.5 text-sky-400" />
+              <span>Web Apps & Proxy</span>
+            </button>
+
+            <button
+              onClick={() => onSelectView('settings', 'wallpapers')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] text-[var(--text-main)] transition-colors cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>Wallpapers</span>
+            </button>
+          </div>
+        </div>
+
+        {/* SECTION 1: Recently Opened Games & Apps */}
+        <div className="space-y-3 pt-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-[var(--accent-color)]/20 text-[var(--accent-color)] flex items-center justify-center">
+                {isFallback ? (
+                  <Flame className="w-3.5 h-3.5 text-amber-400" />
+                ) : (
+                  <Clock className="w-3.5 h-3.5" />
+                )}
+              </div>
+              <h2 className="text-sm font-bold text-[var(--text-main)]">
+                {isFallback ? 'Popular & Trending Now' : 'Recently Opened'}
+              </h2>
+              {isFallback && (
+                <span className="text-[10px] text-[var(--text-dim)]">(Play games to pin here)</span>
+              )}
+            </div>
+
+            {!isFallback && recents.length > 0 && (
+              <button
+                onClick={handleClearRecents}
+                className="text-[11px] text-[var(--text-dim)] hover:text-red-400 transition-colors cursor-pointer flex items-center gap-1"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Clear</span>
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {displayRecents.map((item) => (
+              <div
+                key={item.id || item.title}
+                onClick={() => {
+                  sounds.playLaunch(settings.soundEffectsEnabled);
+                  if (item.url && !item.thumbnail) {
+                    onLaunchApp(item.url);
+                  } else {
+                    onPlayGame(item);
+                  }
+                }}
+                className="p-3 rounded-2xl bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] hover:border-[var(--accent-color)]/60 transition-all cursor-pointer group flex flex-col justify-between space-y-3 shadow-md"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-color)] flex items-center justify-center shrink-0 overflow-hidden group-hover:border-[var(--accent-color)]/50">
+                    {item.thumbnail ? (
+                      <img
+                        src={item.thumbnail}
+                        alt={item.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <Gamepad2 className="w-5 h-5 text-[var(--accent-color)]" />
+                    )}
+                  </div>
+                  <div className="truncate flex-1">
+                    <h3 className="text-xs font-bold text-[var(--text-main)] truncate group-hover:text-[var(--accent-color)] transition-colors">
+                      {item.title || item.name}
+                    </h3>
+                    <span className="text-[10px] text-[var(--text-dim)] truncate block">
+                      {item.category || 'Game'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-1 text-[11px] text-[var(--text-dim)] border-t border-[var(--border-color)]/50">
+                  <span className="text-[10px] opacity-75">Instant Play</span>
+                  <div className="w-6 h-6 rounded-full bg-[var(--accent-color)]/20 text-[var(--accent-color)] flex items-center justify-center group-hover:bg-[var(--accent-color)] group-hover:text-white transition-colors">
+                    <Play className="w-3 h-3 fill-current ml-0.5" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* SECTION 2: Favorites Shelf (if user has favorited items) */}
+        {favoriteGames.length > 0 && (
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center">
+                  <Heart className="w-3.5 h-3.5 fill-current" />
+                </div>
+                <h2 className="text-sm font-bold text-[var(--text-main)]">
+                  Your Favorites ({favoriteGames.length})
+                </h2>
+              </div>
+              <button
+                onClick={() => onSelectView('favorites')}
+                className="text-xs text-[var(--accent-color)] hover:underline flex items-center gap-1 font-semibold cursor-pointer"
+              >
+                <span>View All</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {favoriteGames.slice(0, 4).map((g) => (
+                <div
+                  key={g.id}
+                  onClick={() => {
+                    sounds.playLaunch(settings.soundEffectsEnabled);
+                    onPlayGame(g);
+                  }}
+                  className="p-3 rounded-2xl bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] hover:border-rose-500/60 transition-all cursor-pointer group flex items-center justify-between gap-2"
+                >
+                  <div className="flex items-center gap-2.5 truncate">
+                    <div className="w-8 h-8 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-color)] flex items-center justify-center shrink-0 overflow-hidden">
+                      {g.thumbnail ? (
+                        <img
+                          src={g.thumbnail}
+                          alt={g.title}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <Gamepad2 className="w-4 h-4 text-rose-400" />
+                      )}
+                    </div>
+                    <div className="truncate">
+                      <div className="text-xs font-bold text-[var(--text-main)] truncate">
+                        {g.title}
+                      </div>
+                      <span className="text-[10px] text-[var(--text-dim)]">{g.category}</span>
+                    </div>
+                  </div>
+                  <Heart className="w-4 h-4 text-rose-500 fill-current shrink-0" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* SECTION 3: Web Apps & Shortcuts Row */}
+        <div className="space-y-3 pt-2">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center">
+              <Globe className="w-3.5 h-3.5" />
+            </div>
+            <h2 className="text-sm font-bold text-[var(--text-main)]">
+              Featured Web Apps & Shortcuts
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
+            {DEFAULT_SHORTCUTS.slice(0, 6).map((app) => (
+              <button
+                key={app.id}
+                onClick={() => {
+                  sounds.playLaunch(settings.soundEffectsEnabled);
+                  onLaunchApp(app.url);
+                }}
+                className="p-3 rounded-2xl bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] hover:border-[var(--accent-color)]/60 text-center flex flex-col items-center justify-center gap-2 transition-all cursor-pointer group shadow-sm"
+              >
+                <div className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-color)] flex items-center justify-center group-hover:scale-105 transition-transform text-sm font-bold text-[var(--accent-color)]">
+                  <Globe className="w-5 h-5 text-[var(--accent-color)]" />
+                </div>
+                <span className="text-xs font-semibold text-[var(--text-main)] group-hover:text-[var(--accent-color)] transition-colors truncate w-full">
+                  {app.name}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Disclaimer Note */}
+        <div className="flex items-center justify-center gap-2 pt-4 text-[11px] text-[var(--text-dim)] text-center">
+          <AlertCircle className="w-3.5 h-3.5 text-amber-400/80 shrink-0" />
+          <span>
+            Disclaimer: Some games might not work or may be restricted on certain school/organization networks.
+          </span>
+        </div>
       </div>
     </div>
   );

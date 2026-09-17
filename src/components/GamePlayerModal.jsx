@@ -132,6 +132,10 @@ export const GamePlayerModal = ({
                   <ShieldCheck className="w-3 h-3" />
                   Sanitized Player
                 </span>
+                <span className="hidden md:inline">•</span>
+                <span className="text-[#8e85a6] hidden md:inline" title="Notice: Some games may be restricted by strict network firewalls">
+                  Note: If game doesn't load, try Cloak Popout
+                </span>
               </div>
             </div>
           </div>

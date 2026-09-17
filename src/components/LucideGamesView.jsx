@@ -10,6 +10,8 @@ import {
   Trash2,
   Gamepad2,
   Dices,
+  Info,
+  AlertTriangle,
 } from 'lucide-react';
 import { openAboutBlankCloaked } from '../utils/cloak';
 
@@ -25,6 +27,7 @@ export const LucideGamesView = ({
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [displayLimit, setDisplayLimit] = useState(72);
   const [failedImages, setFailedImages] = useState({});
+  const [showDisclaimer, setShowDisclaimer] = useState(true);
 
   // Filter games based on category, search, and favorites
   const filteredGames = useMemo(() => {
@@ -100,6 +103,31 @@ export const LucideGamesView = ({
             </button>
           </div>
         </div>
+
+        {/* Game Compatibility Disclaimer Banner */}
+        {showDisclaimer && (
+          <div
+            id="games-compatibility-disclaimer"
+            className="flex items-start sm:items-center justify-between gap-3 px-3.5 py-2.5 rounded-lg bg-amber-500/10 border border-amber-500/25 text-amber-200/90 text-xs transition-all shadow-xs"
+          >
+            <div className="flex items-start sm:items-center gap-2.5">
+              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
+              <div className="leading-snug">
+                <span className="font-semibold text-amber-300">Disclaimer: </span>
+                <span>
+                  Some games might not work or may be blocked depending on your school/network firewall or browser settings. If a title fails to load, use the <strong>Cloak Popout</strong> button or try another unblocked mirror.
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowDisclaimer(false)}
+              className="text-amber-400/70 hover:text-amber-300 text-[11px] font-medium shrink-0 px-1.5 py-0.5 rounded hover:bg-amber-500/15 transition-colors cursor-pointer"
+              title="Dismiss note"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         {/* Search & Filter Bar */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">

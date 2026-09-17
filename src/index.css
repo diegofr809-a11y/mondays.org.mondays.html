@@ -58,6 +58,30 @@
   background: var(--border-hover);
 }
 
+/* Tabs-specific horizontal scrollbar */
+.tabs-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-hover) transparent;
+}
+
+.tabs-scrollbar::-webkit-scrollbar {
+  height: 4px;
+}
+
+.tabs-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 9999px;
+}
+
+.tabs-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 9999px;
+}
+
+.tabs-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-color);
+}
+
 @keyframes wiggle {
   0%, 100% { transform: rotate(0deg) scale(1.05); }
   20% { transform: rotate(-3deg) scale(1.06); }

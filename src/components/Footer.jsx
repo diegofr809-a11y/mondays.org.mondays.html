@@ -43,6 +43,15 @@ export const Footer = ({
             <Shield className="w-3.5 h-3.5" />
             <span>Tab Cloak</span>
           </button>
+          <a
+            href="https://discord.gg/QtCDfSyad3"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-[#5865F2] transition-colors flex items-center gap-1 cursor-pointer"
+            title="Join the Discord server"
+          >
+            <span>Discord</span>
+          </a>
           <button
             onClick={onPanic}
             className="text-red-400 hover:text-red-300 transition-colors flex items-center gap-1"
@@ -52,9 +61,10 @@ export const Footer = ({
           </button>
         </div>
 
-        {/* Legal note */}
-        <div className="text-[10px] text-[#424d60] text-center sm:text-right">
-          Client-side sandbox • No copyrighted binaries hosted
+        {/* Legal & Compatibility note */}
+        <div className="text-[10px] text-[#55637a] text-center sm:text-right flex flex-col sm:items-end">
+          <span>Client-side sandbox • No copyrighted binaries hosted</span>
+          <span className="text-[#455064] text-[9px] mt-0.5">Note: Some games might not work or may be restricted on certain school/work networks.</span>
         </div>
       </div>
     </footer>
