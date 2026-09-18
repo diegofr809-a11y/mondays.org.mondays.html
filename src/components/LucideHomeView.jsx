@@ -65,7 +65,7 @@ export const LucideHomeView = ({
   };
 
   return (
-    <div className="relative flex-1 h-screen flex flex-col items-center px-4 sm:px-8 py-6 select-none bg-[var(--bg-base)] overflow-y-auto">
+    <div className="relative flex-1 h-full flex flex-col items-center px-4 sm:px-8 py-6 select-none bg-transparent overflow-y-auto">
       {/* Aurora nebula ambient background */}
       <div
         className="pointer-events-none fixed inset-0 z-0"
@@ -176,42 +176,23 @@ export const LucideHomeView = ({
               <Heart className="w-3.5 h-3.5 text-rose-400" />
               <span>Favorites ({favoriteGames.length})</span>
             </button>
-
-            <button
-              onClick={() => onSelectView('proxy')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] text-[var(--text-main)] transition-colors cursor-pointer"
-            >
-              <Globe className="w-3.5 h-3.5 text-sky-400" />
-              <span>Web Apps & Proxy</span>
-            </button>
-
-            <button
-              onClick={() => onSelectView('settings', 'wallpapers')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] text-[var(--text-main)] transition-colors cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>Wallpapers</span>
-            </button>
           </div>
         </div>
 
-        {/* SECTION 1: Recently Opened Games & Apps */}
+        {/* SECTION 1: Recently Opened Games */}
         <div className="space-y-3 pt-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-[var(--accent-color)]/20 text-[var(--accent-color)] flex items-center justify-center">
+              <div className="w-7 h-7 rounded-lg bg-white/[0.06] text-[var(--accent-color)] flex items-center justify-center">
                 {isFallback ? (
-                  <Flame className="w-3.5 h-3.5 text-amber-400" />
+                  <Flame className="w-3.5 h-3.5 text-zinc-400" />
                 ) : (
-                  <Clock className="w-3.5 h-3.5" />
+                  <Clock className="w-3.5 h-3.5 text-zinc-400" />
                 )}
               </div>
               <h2 className="text-sm font-bold text-[var(--text-main)]">
-                {isFallback ? 'Popular & Trending Now' : 'Recently Opened'}
+                {isFallback ? 'Popular & Trending Games' : 'Recently Played'}
               </h2>
-              {isFallback && (
-                <span className="text-[10px] text-[var(--text-dim)]">(Play games to pin here)</span>
-              )}
             </div>
 
             {!isFallback && recents.length > 0 && (
@@ -231,21 +212,17 @@ export const LucideHomeView = ({
                 key={item.id || item.title}
                 onClick={() => {
                   sounds.playLaunch(settings.soundEffectsEnabled);
-                  if (item.url && !item.thumbnail) {
-                    onLaunchApp(item.url);
-                  } else {
-                    onPlayGame(item);
-                  }
+                  onPlayGame(item);
                 }}
-                className="p-3 rounded-2xl bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] hover:border-[var(--accent-color)]/60 transition-all cursor-pointer group flex flex-col justify-between space-y-3 shadow-md"
+                className="p-3 rounded-2xl bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] hover:border-white/20 transition-all cursor-pointer group flex flex-col justify-between space-y-3 shadow-sm"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-color)] flex items-center justify-center shrink-0 overflow-hidden group-hover:border-[var(--accent-color)]/50">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-color)] flex items-center justify-center shrink-0 overflow-hidden">
                     {item.thumbnail ? (
                       <img
                         src={item.thumbnail}
                         alt={item.title}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover filter brightness-[0.92] contrast-[0.98] group-hover:brightness-100 transition-all"
                         loading="lazy"
                         referrerPolicy="no-referrer"
                         onError={(e) => {
@@ -253,11 +230,11 @@ export const LucideHomeView = ({
                         }}
                       />
                     ) : (
-                      <Gamepad2 className="w-5 h-5 text-[var(--accent-color)]" />
+                      <Gamepad2 className="w-5 h-5 text-zinc-400" />
                     )}
                   </div>
                   <div className="truncate flex-1">
-                    <h3 className="text-xs font-bold text-[var(--text-main)] truncate group-hover:text-[var(--accent-color)] transition-colors">
+                    <h3 className="text-xs font-semibold text-[var(--text-main)] truncate group-hover:text-white transition-colors">
                       {item.title || item.name}
                     </h3>
                     <span className="text-[10px] text-[var(--text-dim)] truncate block">
@@ -267,8 +244,8 @@ export const LucideHomeView = ({
                 </div>
 
                 <div className="flex items-center justify-between pt-1 text-[11px] text-[var(--text-dim)] border-t border-[var(--border-color)]/50">
-                  <span className="text-[10px] opacity-75">Instant Play</span>
-                  <div className="w-6 h-6 rounded-full bg-[var(--accent-color)]/20 text-[var(--accent-color)] flex items-center justify-center group-hover:bg-[var(--accent-color)] group-hover:text-white transition-colors">
+                  <span className="text-[10px] opacity-75">Play Now</span>
+                  <div className="w-6 h-6 rounded-full bg-white/[0.08] text-zinc-300 flex items-center justify-center group-hover:bg-[var(--accent-color)] group-hover:text-white transition-colors">
                     <Play className="w-3 h-3 fill-current ml-0.5" />
                   </div>
                 </div>
@@ -282,7 +259,7 @@ export const LucideHomeView = ({
           <div className="space-y-3 pt-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center">
+                <div className="w-7 h-7 rounded-lg bg-rose-500/15 text-rose-400 flex items-center justify-center">
                   <Heart className="w-3.5 h-3.5 fill-current" />
                 </div>
                 <h2 className="text-sm font-bold text-[var(--text-main)]">
@@ -306,7 +283,7 @@ export const LucideHomeView = ({
                     sounds.playLaunch(settings.soundEffectsEnabled);
                     onPlayGame(g);
                   }}
-                  className="p-3 rounded-2xl bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] hover:border-rose-500/60 transition-all cursor-pointer group flex items-center justify-between gap-2"
+                  className="p-3 rounded-2xl bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] hover:border-white/20 transition-all cursor-pointer group flex items-center justify-between gap-2"
                 >
                   <div className="flex items-center gap-2.5 truncate">
                     <div className="w-8 h-8 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-color)] flex items-center justify-center shrink-0 overflow-hidden">
@@ -314,16 +291,16 @@ export const LucideHomeView = ({
                         <img
                           src={g.thumbnail}
                           alt={g.title}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover filter brightness-[0.92] contrast-[0.98] group-hover:brightness-100 transition-all"
                           loading="lazy"
                           referrerPolicy="no-referrer"
                         />
                       ) : (
-                        <Gamepad2 className="w-4 h-4 text-rose-400" />
+                        <Gamepad2 className="w-4 h-4 text-zinc-400" />
                       )}
                     </div>
                     <div className="truncate">
-                      <div className="text-xs font-bold text-[var(--text-main)] truncate">
+                      <div className="text-xs font-semibold text-[var(--text-main)] truncate group-hover:text-white">
                         {g.title}
                       </div>
                       <span className="text-[10px] text-[var(--text-dim)]">{g.category}</span>
@@ -335,38 +312,6 @@ export const LucideHomeView = ({
             </div>
           </div>
         )}
-
-        {/* SECTION 3: Web Apps & Shortcuts Row */}
-        <div className="space-y-3 pt-2">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center">
-              <Globe className="w-3.5 h-3.5" />
-            </div>
-            <h2 className="text-sm font-bold text-[var(--text-main)]">
-              Featured Web Apps & Shortcuts
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
-            {DEFAULT_SHORTCUTS.slice(0, 6).map((app) => (
-              <button
-                key={app.id}
-                onClick={() => {
-                  sounds.playLaunch(settings.soundEffectsEnabled);
-                  onLaunchApp(app.url);
-                }}
-                className="p-3 rounded-2xl bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] border border-[var(--border-color)] hover:border-[var(--accent-color)]/60 text-center flex flex-col items-center justify-center gap-2 transition-all cursor-pointer group shadow-sm"
-              >
-                <div className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-color)] flex items-center justify-center group-hover:scale-105 transition-transform text-sm font-bold text-[var(--accent-color)]">
-                  <Globe className="w-5 h-5 text-[var(--accent-color)]" />
-                </div>
-                <span className="text-xs font-semibold text-[var(--text-main)] group-hover:text-[var(--accent-color)] transition-colors truncate w-full">
-                  {app.name}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
 
         {/* Disclaimer Note */}
         <div className="flex items-center justify-center gap-2 pt-4 text-[11px] text-[var(--text-dim)] text-center">

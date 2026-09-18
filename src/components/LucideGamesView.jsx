@@ -61,8 +61,8 @@ export const LucideGamesView = ({
   };
 
   return (
-    <div className="flex-1 h-screen overflow-y-auto px-4 sm:px-6 py-6 lucide-bg select-none">
-      <div className="max-w-7xl mx-auto space-y-4">
+    <div className="flex-1 h-full overflow-y-auto px-4 sm:px-6 py-6 lucide-bg select-none">
+      <div className="max-w-7xl mx-auto space-y-4 pb-12">
         {/* Top Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--border-color)]">
           <div className="flex items-center gap-3">
@@ -198,18 +198,18 @@ export const LucideGamesView = ({
               {visibleGames.map((game) => (
                 <div
                   key={game.id}
-                  className="group bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-[var(--accent-color)] rounded-xl p-2 flex flex-col transition-all duration-200 shadow-sm hover:shadow-lg relative overflow-hidden"
+                  className="group bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-white/20 rounded-xl p-2 flex flex-col transition-all duration-200 shadow-sm relative overflow-hidden"
                 >
                   {/* Thumbnail area */}
                   <div
                     onClick={() => handleGameClick(game)}
-                    className="w-full aspect-video rounded-lg bg-black/40 border border-[var(--border-color)] relative flex items-center justify-center cursor-pointer overflow-hidden"
+                    className="w-full aspect-video rounded-lg bg-[#14141a] border border-[var(--border-color)] relative flex items-center justify-center cursor-pointer overflow-hidden"
                   >
                     {game.thumbnailUrl && !failedImages[game.id] ? (
                       <img
                         src={game.thumbnailUrl}
                         alt={game.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover filter brightness-[0.92] contrast-[0.98] group-hover:brightness-100 transition-all duration-200"
                         loading="lazy"
                         referrerPolicy="no-referrer"
                         onError={() => {
@@ -217,17 +217,17 @@ export const LucideGamesView = ({
                         }}
                       />
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#1b202c] to-[#10131a] p-2 text-center select-none">
-                        <Gamepad2 className="w-6 h-6 text-[var(--accent-color)] opacity-75 mb-1" />
-                        <span className="text-[10px] font-bold text-[var(--text-dim)] uppercase tracking-wider line-clamp-1 max-w-[90%]">
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-[#18181f] p-2 text-center select-none">
+                        <Gamepad2 className="w-5 h-5 text-zinc-500 mb-1" />
+                        <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider line-clamp-1 max-w-[90%]">
                           {game.title}
                         </span>
                       </div>
                     )}
 
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                      <div className="w-8 h-8 rounded-full bg-[var(--accent-color)] text-white flex items-center justify-center shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
-                        <Play className="w-4 h-4 fill-white ml-0.5" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm text-white flex items-center justify-center shadow-md">
+                        <Play className="w-3.5 h-3.5 fill-white ml-0.5" />
                       </div>
                     </div>
                   </div>
@@ -236,7 +236,7 @@ export const LucideGamesView = ({
                   <div className="mt-2 flex-1 flex flex-col justify-between">
                     <div className="flex items-start justify-between gap-1">
                       <h4
-                        className="text-xs font-semibold truncate text-[var(--text-main)] group-hover:text-[var(--accent-color)] transition-colors cursor-pointer"
+                        className="text-xs font-medium truncate text-[var(--text-main)] group-hover:text-white transition-colors cursor-pointer"
                         onClick={() => handleGameClick(game)}
                         title={game.title}
                       >

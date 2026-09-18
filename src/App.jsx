@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   getStoredGames,
   saveStoredGames,
@@ -8,39 +8,61 @@ import {
   addStoredRecentlyOpened,
   getStoredNotifications,
   saveStoredNotifications,
+  getStoredUserProfile,
 } from './utils/storage';
 import { applyTabCloak, triggerPanic } from './utils/cloak';
 import { applyTheme, applyCursor, WALLPAPERS } from './utils/theme';
 import { INITIAL_GAMES, DEFAULT_SHORTCUTS } from './data/initialData';
-import { BottomLeftNav } from './components/BottomLeftNav';
-import { LucideMainView } from './components/LucideMainView';
+import { WindowsDesktop } from './components/windows/WindowsDesktop';
+import { WindowsWindow } from './components/windows/WindowsWindow';
+import { WindowsTaskbar } from './components/windows/WindowsTaskbar';
+import { WindowsStartMenu } from './components/windows/WindowsStartMenu';
 import { LucideHomeView } from './components/LucideHomeView';
 import { LucideGamesView } from './components/LucideGamesView';
 import { LucideSettingsView } from './components/LucideSettingsView';
-import { ProxyBrowser } from './components/ProxyBrowser';
 import { GamePlayerModal } from './components/GamePlayerModal';
 import { AddGameModal } from './components/AddGameModal';
 import { UniversalSearchModal } from './components/UniversalSearchModal';
 import { NotificationCenterModal } from './components/NotificationCenterModal';
-import { CheckCircle2, X } from 'lucide-react';
+import { Gamepad2, Home, Heart, Settings, CheckCircle2, X } from 'lucide-react';
 import { sounds } from './utils/sound';
 
 export default function App() {
-  // Navigation View State: 'main' | 'home' | 'proxy' | 'games' | 'favorites' | 'settings'
-  const [activeView, setActiveView] = useState('main');
-  const [settingsInitialTab, setSettingsInitialTab] = useState('appearance');
-  const [browserInitialUrl, setBrowserInitialUrl] = useState('');
-
   // Persistent storage state
   const [games, setGames] = useState(getStoredGames);
   const [settings, setSettings] = useState(getStoredSettings);
   const [notifications, setNotifications] = useState(getStoredNotifications);
+  const [userProfile, setUserProfile] = useState(getStoredUserProfile);
+
+  // Windows 11 Window Manager State
+  const [windows, setWindows] = useState({
+    games: { isOpen: true, isMinimized: false, isMaximized: false },
+    home: { isOpen: false, isMinimized: false, isMaximized: false },
+    favorites: { isOpen: false, isMinimized: false, isMaximized: false },
+    settings: { isOpen: false, isMinimized: false, isMaximized: false },
+  });
+  const [activeWindowId, setActiveWindowId] = useState('games');
+  const [windowZIndices, setWindowZIndices] = useState({
+    games: 21,
+    home: 20,
+    favorites: 20,
+    settings: 20,
+  });
+
+  const [settingsInitialTab, setSettingsInitialTab] = useState('appearance');
+  const [isStartMenuOpen, setIsStartMenuOpen] = useState(false);
 
   // Modals state
   const [isAddGameModalOpen, setIsAddGameModalOpen] = useState(false);
   const [activeGameToPlay, setActiveGameToPlay] = useState(null);
+  const [isGameMinimized, setIsGameMinimized] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isNotifModalOpen, setIsNotifModalOpen] = useState(false);
+
+  // Audio Easter egg state (#grrmondays)
+  const [isPlayingEasterEgg, setIsPlayingEasterEgg] = useState(false);
+  const [easterEggCount, setEasterEggCount] = useState(0);
+  const easterEggTimerRef = useRef(null);
 
   // Toast notification
   const [toastMessage, setToastMessage] = useState(null);
@@ -52,15 +74,113 @@ export default function App() {
     }, 3000);
   };
 
-  const handleSelectView = (v, initialTab = 'appearance') => {
+  // Bring a window to front
+  const bringWindowToFront = (winId) => {
+    setActiveWindowId(winId);
+    setWindowZIndices((prev) => {
+      const maxZ = Math.max(...Object.values(prev), 20);
+      return { ...prev, [winId]: maxZ + 1 };
+    });
+  };
+
+  // Open / Restore a specific window
+  const openWindow = (winId, initialTab = 'appearance') => {
     sounds.playClick(settings.soundEffectsEnabled);
-    if (v === 'main' || v === 'home') {
-      setBrowserInitialUrl('');
-    }
-    if (v === 'settings') {
+    if (winId === 'settings') {
       setSettingsInitialTab(initialTab);
     }
-    setActiveView(v);
+    setWindows((prev) => ({
+      ...prev,
+      [winId]: {
+        isOpen: true,
+        isMinimized: false,
+        isMaximized: prev[winId]?.isMaximized || false,
+      },
+    }));
+    bringWindowToFront(winId);
+    setIsStartMenuOpen(false);
+  };
+
+  // Taskbar Click: toggle between focus / minimize
+  const toggleWindow = (winId) => {
+    const current = windows[winId];
+    if (!current?.isOpen) {
+      openWindow(winId);
+    } else if (current.isMinimized) {
+      // Restore from minimize
+      setWindows((prev) => ({
+        ...prev,
+        [winId]: { ...prev[winId], isMinimized: false },
+      }));
+      bringWindowToFront(winId);
+    } else if (activeWindowId === winId) {
+      // Currently active and clicked again -> minimize
+      setWindows((prev) => ({
+        ...prev,
+        [winId]: { ...prev[winId], isMinimized: true },
+      }));
+      setActiveWindowId(null);
+    } else {
+      // Open but background -> bring to focus
+      bringWindowToFront(winId);
+    }
+  };
+
+  const closeWindow = (winId) => {
+    sounds.playClick(settings.soundEffectsEnabled);
+    setWindows((prev) => ({
+      ...prev,
+      [winId]: { ...prev[winId], isOpen: false },
+    }));
+    if (activeWindowId === winId) {
+      // Focus next open window or null
+      const otherOpen = Object.keys(windows).find(
+        (id) => id !== winId && windows[id].isOpen && !windows[id].isMinimized
+      );
+      setActiveWindowId(otherOpen || null);
+    }
+  };
+
+  const minimizeWindow = (winId) => {
+    sounds.playClick(settings.soundEffectsEnabled);
+    setWindows((prev) => ({
+      ...prev,
+      [winId]: { ...prev[winId], isMinimized: true },
+    }));
+    if (activeWindowId === winId) {
+      setActiveWindowId(null);
+    }
+  };
+
+  const maximizeWindow = (winId) => {
+    sounds.playClick(settings.soundEffectsEnabled);
+    setWindows((prev) => ({
+      ...prev,
+      [winId]: { ...prev[winId], isMaximized: !prev[winId].isMaximized },
+    }));
+    bringWindowToFront(winId);
+  };
+
+  // Windows 11 "Show Desktop" action
+  const handleShowDesktop = () => {
+    const hasUnminimized = Object.values(windows).some(
+      (w) => w.isOpen && !w.isMinimized
+    );
+    if (hasUnminimized || (activeGameToPlay && !isGameMinimized)) {
+      // Minimize all
+      setWindows((prev) => {
+        const next = {};
+        for (const k in prev) {
+          next[k] = { ...prev[k], isMinimized: true };
+        }
+        return next;
+      });
+      if (activeGameToPlay) setIsGameMinimized(true);
+      setActiveWindowId(null);
+    } else {
+      // Restore last window
+      openWindow('games');
+    }
   };
 
   // Apply theme dynamically to CSS variables whenever setting changes
@@ -124,11 +244,14 @@ export default function App() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [settings.confirmBeforeLeave]);
 
-  // Handle Search or URL navigation from Home Omnibar
+  // Handle Search or URL navigation from Omnibar
   const handleHomeSearchOrNavigate = (queryOrUrl) => {
     sounds.playLaunch(settings.soundEffectsEnabled);
-    setBrowserInitialUrl(queryOrUrl);
-    setActiveView('proxy');
+    if (queryOrUrl && /^https?:\/\//i.test(queryOrUrl)) {
+      window.open(queryOrUrl, '_blank');
+    } else {
+      setIsSearchModalOpen(true);
+    }
   };
 
   // Launch game handler
@@ -136,6 +259,7 @@ export default function App() {
     sounds.playLaunch(settings.soundEffectsEnabled);
     addStoredRecentlyOpened(game);
     setActiveGameToPlay(game);
+    setIsGameMinimized(false);
   };
 
   // Game management actions
@@ -214,170 +338,273 @@ export default function App() {
 
   const handleNotificationAction = (action) => {
     if (action === 'changelog') {
-      handleSelectView('settings', 'changelog');
+      openWindow('settings', 'changelog');
     }
   };
 
+  // Trigger #grrmondays audio easter egg
+  const handleEasterEggClick = () => {
+    sounds.playClick(settings.soundEffectsEnabled);
+    if (easterEggTimerRef.current) {
+      clearTimeout(easterEggTimerRef.current);
+    }
+    setIsPlayingEasterEgg(true);
+    setEasterEggCount((prev) => prev + 1);
+    easterEggTimerRef.current = setTimeout(() => {
+      setIsPlayingEasterEgg(false);
+    }, 3000);
+  };
+
   // Compute wallpaper style
-  const activeWallpaper =
-    settings.wallpaper === 'custom' && settings.customWallpaperUrl
-      ? { id: 'custom', css: `url("${settings.customWallpaperUrl}")`, size: 'cover' }
-      : WALLPAPERS.find((w) => w.id === (settings.wallpaper || 'none')) || WALLPAPERS[0];
+  const activeWallpaper = useMemo(() => {
+    if (settings.wallpaper === 'custom' && settings.customWallpaperUrl) {
+      return {
+        id: 'custom',
+        css: `url("${settings.customWallpaperUrl}")`,
+        size: 'cover',
+        repeat: 'no-repeat',
+        position: 'center center',
+      };
+    }
+    const found = WALLPAPERS.find((w) => w.id === (settings.wallpaper || 'none')) || WALLPAPERS[0];
+    if (!found || found.id === 'none') {
+      return { id: 'none', css: 'none' };
+    }
+    if (found.imageUrl) {
+      return {
+        ...found,
+        css: `url("${found.imageUrl}")`,
+        size: found.size || 'cover',
+        repeat: 'no-repeat',
+        position: 'center center',
+      };
+    }
+    return {
+      ...found,
+      css: found.css || 'none',
+      size: found.size || 'auto',
+      repeat: 'repeat',
+      position: 'center center',
+    };
+  }, [settings.wallpaper, settings.customWallpaperUrl]);
 
   const favoriteGames = games.filter((g) => g.isFavorite);
   const unreadNotifsCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div
-      className="h-screen w-screen overflow-hidden flex bg-[var(--bg-base)] text-[var(--text-main)] font-sans selection:bg-purple-500/30 selection:text-purple-200"
-      style={{
-        backgroundImage: activeWallpaper.css !== 'none' ? activeWallpaper.css : undefined,
-        backgroundSize: activeWallpaper.size || 'auto',
-      }}
-    >
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-18 right-5 z-50 flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-xs font-semibold text-[var(--text-main)] shadow-2xl animate-fade-in">
-          <CheckCircle2 className="w-4 h-4 text-[var(--accent-color)] shrink-0" />
-          <span>{toastMessage}</span>
-          <button
-            onClick={() => setToastMessage(null)}
-            className="text-[var(--text-dim)] hover:text-[var(--text-main)] p-0.5 ml-1 cursor-pointer"
-          >
-            <X className="w-3 h-3" />
-          </button>
+    <div className="h-screen w-screen overflow-hidden flex bg-black text-white font-sans selection:bg-[#0078d4]/30 selection:text-white relative">
+      {/* Background Wallpaper Layer */}
+      {activeWallpaper.id !== 'none' && (
+        <>
+          <div
+            id="grrmondays-wallpaper-bg"
+            className="fixed inset-0 pointer-events-none z-0 transition-opacity duration-300"
+            style={{
+              backgroundImage: activeWallpaper.css,
+              backgroundSize: activeWallpaper.size || 'cover',
+              backgroundPosition: activeWallpaper.position || 'center center',
+              backgroundRepeat: activeWallpaper.repeat || 'no-repeat',
+              backgroundAttachment: 'fixed',
+            }}
+          />
+          <div
+            id="grrmondays-wallpaper-overlay"
+            className="fixed inset-0 pointer-events-none z-0 bg-black/40 backdrop-blur-[0.5px]"
+          />
+        </>
+      )}
+
+      {/* Hidden YouTube audio player for #grrmondays Easter Egg */}
+      {isPlayingEasterEgg && (
+        <div className="sr-only pointer-events-none" aria-hidden="true">
+          <iframe
+            key={easterEggCount}
+            src="https://www.youtube-nocookie.com/embed/pCNWg9l_sHk?autoplay=1&start=0&controls=0&disablekb=1&fs=0&modestbranding=1&rel=0&iv_load_policy=3&enablejsapi=1"
+            allow="autoplay; encrypted-media"
+            title="Grrr Mondays Audio"
+            className="w-1 h-1 opacity-0 pointer-events-none fixed -top-[9999px] -left-[9999px]"
+          />
         </div>
       )}
 
-      {/* Discord Button (Bottom Right) */}
-      <a
-        id="discord-invite-btn"
-        href="https://discord.gg/QtCDfSyad3"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Join Discord Server"
-        className="fixed bottom-5 right-5 z-40 flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] text-white shadow-lg shadow-[#5865F2]/25 hover:shadow-[#5865F2]/40 transition-all duration-200 active:scale-95 select-none border border-white/10 group cursor-pointer"
+      {/* WINDOWS 11 DESKTOP CANVAS (Shortcuts, Icons, Black/Dark Background) */}
+      <WindowsDesktop
+        games={games}
+        favoriteGames={favoriteGames}
+        shortcuts={DEFAULT_SHORTCUTS}
+        onOpenWindow={openWindow}
+        onPlayGame={handlePlayGame}
+        onOpenSearch={() => setIsSearchModalOpen(true)}
+        onOpenAddGame={() => setIsAddGameModalOpen(true)}
+        onOpenSettingsTab={(tab) => openWindow('settings', tab)}
+        settings={settings}
+        activeWindowId={activeWindowId}
+        isAnyWindowOpen={Object.values(windows).some((w) => w.isOpen && !w.isMinimized)}
+        onEasterEggClick={handleEasterEggClick}
+      />
+
+      {/* WINDOW 1: Games Library */}
+      <WindowsWindow
+        id="games"
+        title="Games Library"
+        subtitle={`${games.length} Unblocked Games`}
+        icon={Gamepad2}
+        isOpen={windows.games.isOpen}
+        isMinimized={windows.games.isMinimized}
+        isMaximized={windows.games.isMaximized}
+        onMinimize={() => minimizeWindow('games')}
+        onMaximize={() => maximizeWindow('games')}
+        onClose={() => closeWindow('games')}
+        zIndex={windowZIndices.games}
+        onFocus={() => bringWindowToFront('games')}
+        soundEffectsEnabled={settings.soundEffectsEnabled}
       >
-        <svg
-          className="w-4 h-4 fill-current transition-transform duration-200 group-hover:scale-110 shrink-0"
-          viewBox="0 0 127.14 96.36"
-          aria-hidden="true"
-        >
-          <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,45.91,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,45.91,96.12,53,91.08,65.69,84.69,65.69Z" />
-        </svg>
-        <span className="text-xs font-semibold tracking-wide">Discord</span>
-      </a>
+        <LucideGamesView
+          games={games}
+          onPlayGame={handlePlayGame}
+          onOpenAddGame={() => setIsAddGameModalOpen(true)}
+          onToggleFavorite={handleToggleFavorite}
+          onDeleteGame={handleDeleteGame}
+        />
+      </WindowsWindow>
 
-      {/* Floating Bottom-Left Navigation: Home button that pops up navigation upwards */}
-      <BottomLeftNav
-        activeView={activeView}
-        onSelectView={handleSelectView}
-        gamesCount={games.length}
-        favoritesCount={favoriteGames.length}
+      {/* WINDOW 2: Home Dashboard */}
+      <WindowsWindow
+        id="home"
+        title="Home Dashboard"
+        subtitle="Quick Launch, Clock & Recents"
+        icon={Home}
+        isOpen={windows.home.isOpen}
+        isMinimized={windows.home.isMinimized}
+        isMaximized={windows.home.isMaximized}
+        onMinimize={() => minimizeWindow('home')}
+        onMaximize={() => maximizeWindow('home')}
+        onClose={() => closeWindow('home')}
+        zIndex={windowZIndices.home}
+        onFocus={() => bringWindowToFront('home')}
+        soundEffectsEnabled={settings.soundEffectsEnabled}
+      >
+        <LucideHomeView
+          games={games}
+          settings={settings}
+          onSearchOrNavigate={handleHomeSearchOrNavigate}
+          onPlayGame={handlePlayGame}
+          onLaunchApp={(url) => {
+            const shortcut = DEFAULT_SHORTCUTS.find((s) => s.url === url);
+            if (shortcut) {
+              addStoredRecentlyOpened({
+                id: shortcut.id,
+                title: shortcut.name,
+                url: shortcut.url,
+                category: 'Web App',
+              });
+            }
+            if (url) window.open(url, '_blank');
+          }}
+          onOpenSearchModal={() => setIsSearchModalOpen(true)}
+          onOpenNotifications={() => setIsNotifModalOpen(true)}
+          unreadNotifsCount={unreadNotifsCount}
+          onSelectView={openWindow}
+        />
+      </WindowsWindow>
+
+      {/* WINDOW 3: Favorites */}
+      <WindowsWindow
+        id="favorites"
+        title="Favorites"
+        subtitle={`${favoriteGames.length} Starred Titles`}
+        icon={Heart}
+        isOpen={windows.favorites.isOpen}
+        isMinimized={windows.favorites.isMinimized}
+        isMaximized={windows.favorites.isMaximized}
+        onMinimize={() => minimizeWindow('favorites')}
+        onMaximize={() => maximizeWindow('favorites')}
+        onClose={() => closeWindow('favorites')}
+        zIndex={windowZIndices.favorites}
+        onFocus={() => bringWindowToFront('favorites')}
+        soundEffectsEnabled={settings.soundEffectsEnabled}
+      >
+        <LucideGamesView
+          games={favoriteGames}
+          onPlayGame={handlePlayGame}
+          onOpenAddGame={() => setIsAddGameModalOpen(true)}
+          onToggleFavorite={handleToggleFavorite}
+          onDeleteGame={handleDeleteGame}
+          initialFilter="favorites"
+        />
+      </WindowsWindow>
+
+      {/* WINDOW 4: Settings */}
+      <WindowsWindow
+        id="settings"
+        title="Settings"
+        subtitle="System Preferences & Customization"
+        icon={Settings}
+        isOpen={windows.settings.isOpen}
+        isMinimized={windows.settings.isMinimized}
+        isMaximized={windows.settings.isMaximized}
+        onMinimize={() => minimizeWindow('settings')}
+        onMaximize={() => maximizeWindow('settings')}
+        onClose={() => closeWindow('settings')}
+        zIndex={windowZIndices.settings}
+        onFocus={() => bringWindowToFront('settings')}
+        soundEffectsEnabled={settings.soundEffectsEnabled}
+      >
+        <LucideSettingsView
+          settings={settings}
+          onUpdateSettings={handleUpdateSettings}
+          games={games}
+          onImportGames={handleImportGames}
+          onClearGames={handleClearGames}
+          onResetLibraryDefaults={handleResetLibraryDefaults}
+          initialTab={settingsInitialTab}
+        />
+      </WindowsWindow>
+
+      {/* WINDOWS 11 START MENU */}
+      <WindowsStartMenu
+        isOpen={isStartMenuOpen}
+        onClose={() => setIsStartMenuOpen(false)}
+        games={games}
+        favoriteGames={favoriteGames}
+        onOpenWindow={openWindow}
+        onPlayGame={handlePlayGame}
+        onOpenSearch={() => setIsSearchModalOpen(true)}
+        onOpenAddGame={() => setIsAddGameModalOpen(true)}
+        settings={settings}
+        userProfile={userProfile}
       />
 
-      {/* Main Screen / Content Views */}
-      <div className="flex-1 h-screen overflow-hidden flex flex-col relative min-w-0">
-        {/* 0. Main View (#grrmondays screen with clock at top and center toggle setting) */}
-        {activeView === 'main' && (
-          <LucideMainView
-            settings={settings}
-            onOpenSettings={(tab) => handleSelectView('settings', tab)}
-          />
-        )}
-
-        {/* 1. Home Dashboard View (Search, Recents, Favorites Shelf, Web Apps) */}
-        {activeView === 'home' && (
-          <LucideHomeView
-            games={games}
-            settings={settings}
-            onSearchOrNavigate={handleHomeSearchOrNavigate}
-            onPlayGame={handlePlayGame}
-            onLaunchApp={(url) => {
-              const shortcut = DEFAULT_SHORTCUTS.find((s) => s.url === url);
-              if (shortcut) {
-                addStoredRecentlyOpened({
-                  id: shortcut.id,
-                  title: shortcut.name,
-                  url: shortcut.url,
-                  category: 'Web App',
-                });
-              }
-              handleHomeSearchOrNavigate(url);
-            }}
-            onOpenSearchModal={() => setIsSearchModalOpen(true)}
-            onOpenNotifications={() => setIsNotifModalOpen(true)}
-            unreadNotifsCount={unreadNotifsCount}
-            onSelectView={handleSelectView}
-          />
-        )}
-
-        {/* 2. Web Proxy & Browser View */}
-        {activeView === 'proxy' && (
-          <ProxyBrowser
-            initialUrl={browserInitialUrl}
-            searchEngine={settings.defaultSearchEngine}
-            onClose={() => {
-              setActiveView('main');
-              setBrowserInitialUrl('');
-            }}
-          />
-        )}
-
-        {/* 3. Games Library View */}
-        {activeView === 'games' && (
-          <LucideGamesView
-            games={games}
-            onPlayGame={handlePlayGame}
-            onOpenAddGame={() => setIsAddGameModalOpen(true)}
-            onToggleFavorite={handleToggleFavorite}
-            onDeleteGame={handleDeleteGame}
-          />
-        )}
-
-        {/* 4. Dedicated Favorites Tab */}
-        {activeView === 'favorites' && (
-          <LucideGamesView
-            games={favoriteGames}
-            onPlayGame={handlePlayGame}
-            onOpenAddGame={() => setIsAddGameModalOpen(true)}
-            onToggleFavorite={handleToggleFavorite}
-            onDeleteGame={handleDeleteGame}
-            initialFilter="favorites"
-          />
-        )}
-
-        {/* 5. Settings View */}
-        {activeView === 'settings' && (
-          <LucideSettingsView
-            settings={settings}
-            onUpdateSettings={handleUpdateSettings}
-            games={games}
-            onImportGames={handleImportGames}
-            onClearGames={handleClearGames}
-            onResetLibraryDefaults={handleResetLibraryDefaults}
-            initialTab={settingsInitialTab}
-          />
-        )}
-      </div>
-
-      {/* Modals & Dialogs */}
-      <AddGameModal
-        isOpen={isAddGameModalOpen}
-        onClose={() => setIsAddGameModalOpen(false)}
-        onAddGame={handleAddGame}
+      {/* WINDOWS 11 TASKBAR (Bottom Dock) */}
+      <WindowsTaskbar
+        isStartMenuOpen={isStartMenuOpen}
+        onToggleStartMenu={() => setIsStartMenuOpen(!isStartMenuOpen)}
+        windows={windows}
+        activeWindowId={activeWindowId}
+        onToggleWindow={toggleWindow}
+        onOpenSearch={() => setIsSearchModalOpen(true)}
+        onOpenNotifications={() => setIsNotifModalOpen(true)}
+        unreadNotifsCount={unreadNotifsCount}
+        activeGameToPlay={activeGameToPlay}
+        onFocusGamePlayer={() => setIsGameMinimized(false)}
+        settings={settings}
+        onUpdateSettings={handleUpdateSettings}
+        onShowDesktop={handleShowDesktop}
       />
 
+      {/* ACTIVE GAME PLAYER MODAL (with Windows 11 minimize to taskbar support) */}
       {activeGameToPlay && (
         <GamePlayerModal
           game={activeGameToPlay}
           onClose={() => setActiveGameToPlay(null)}
           onToggleFavorite={handleToggleFavorite}
           onRecordPlay={handleRecordPlay}
+          isMinimized={isGameMinimized}
+          onMinimize={() => setIsGameMinimized(true)}
         />
       )}
 
-      {/* Universal Search Modal */}
+      {/* Universal Search Modal (Ctrl+K / Taskbar Search) */}
       <UniversalSearchModal
         isOpen={isSearchModalOpen}
         onClose={() => setIsSearchModalOpen(false)}
@@ -388,7 +615,7 @@ export default function App() {
           handleUpdateSettings({ ...settings, wallpaper: wpId });
           showToast('Wallpaper applied');
         }}
-        onOpenSettingsTab={(tab) => handleSelectView('settings', tab)}
+        onOpenSettingsTab={(tab) => openWindow('settings', tab)}
         soundEffectsEnabled={settings.soundEffectsEnabled}
       />
 
@@ -402,6 +629,27 @@ export default function App() {
         onOpenAction={handleNotificationAction}
         soundEffectsEnabled={settings.soundEffectsEnabled}
       />
+
+      {/* Add Custom Game Modal */}
+      <AddGameModal
+        isOpen={isAddGameModalOpen}
+        onClose={() => setIsAddGameModalOpen(false)}
+        onAddGame={handleAddGame}
+      />
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-14 right-5 z-50 flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#1e1e24] border border-white/15 text-xs font-semibold text-white shadow-2xl animate-fade-in">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{toastMessage}</span>
+          <button
+            onClick={() => setToastMessage(null)}
+            className="text-zinc-400 hover:text-white p-0.5 ml-1 cursor-pointer"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

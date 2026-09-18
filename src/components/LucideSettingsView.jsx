@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { THEMES, ACCENT_PRESETS, CURSOR_PRESETS, getCursorSvg } from '../utils/theme';
+import { THEMES, ACCENT_PRESETS, CURSOR_PRESETS, getCursorSvg, applyCursor } from '../utils/theme';
 import { CLOAK_PRESETS } from '../data/initialData';
 import { clearAllData, getStoredRecentlyOpened, getStoredUserProfile, getStoredNotifications } from '../utils/storage';
 import { triggerPanic, openAboutBlankCloaked } from '../utils/cloak';
@@ -35,6 +35,8 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
+  Monitor,
+  Layout,
 } from 'lucide-react';
 
 export const LucideSettingsView = ({
@@ -166,6 +168,7 @@ export const LucideSettingsView = ({
 
   const handleCursorSelect = (cursorId) => {
     sounds.playClick(settings.soundEffectsEnabled);
+    applyCursor(cursorId, settings.customAccentColor || '#9333ea');
     handleUpdate('customCursor', cursorId);
   };
 
@@ -247,7 +250,7 @@ export const LucideSettingsView = ({
   };
 
   return (
-    <div className="flex-1 h-screen overflow-y-auto px-4 sm:px-8 py-8 select-none bg-[var(--bg-base)] text-[var(--text-main)]">
+    <div className="flex-1 h-full overflow-y-auto px-4 sm:px-8 py-8 select-none bg-transparent text-[var(--text-main)]">
       <div className="max-w-4xl mx-auto space-y-6 pb-20">
         {/* Top Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[var(--border-color)]">
@@ -352,6 +355,113 @@ export const LucideSettingsView = ({
         {/* TAB 1: APPEARANCE (Themes + Custom Accent Color Picker) */}
         {activeTab === 'appearance' && (
           <div className="space-y-6 animate-fade-in">
+            {/* UI Mode / Layout Switcher */}
+            <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-bold text-[var(--text-main)] flex items-center gap-2">
+                    <Monitor className="w-4 h-4 text-[var(--accent-color)]" />
+                    <span>Interface Layout & UI Style</span>
+                  </h3>
+                  <p className="text-xs text-[var(--text-dim)]">
+                    Switch between the Windows 11 Desktop interface and the Classic Web App layout.
+                  </p>
+                </div>
+                {settings.uiMode === 'windows11' ? (
+                  <button
+                    onClick={() => {
+                      sounds.playClick(settings.soundEffectsEnabled);
+                      updateSetting('uiMode', 'classic');
+                    }}
+                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-zinc-200 border border-white/15 text-xs font-semibold transition-all cursor-pointer shrink-0"
+                    title="Revert back to the classic web app interface"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Revert to Old UI</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      sounds.playClick(settings.soundEffectsEnabled);
+                      updateSetting('uiMode', 'windows11');
+                    }}
+                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-zinc-200 border border-white/15 text-xs font-semibold transition-all cursor-pointer shrink-0"
+                    title="Switch to Windows 11 Desktop UI"
+                  >
+                    <Monitor className="w-3.5 h-3.5 text-sky-400" />
+                    <span>Switch to Windows 11 UI</span>
+                  </button>
+                )}
+              </div>
+
+              {/* 2 Layout Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    sounds.playClick(settings.soundEffectsEnabled);
+                    updateSetting('uiMode', 'windows11');
+                  }}
+                  className={`p-4 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-2 ${
+                    settings.uiMode === 'windows11'
+                      ? 'border-sky-500/80 bg-sky-500/10 ring-1 ring-sky-500/50'
+                      : 'border-[var(--border-color)] bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-[#202028] border border-white/10 flex items-center justify-center text-sky-400">
+                        <Monitor className="w-4 h-4" />
+                      </div>
+                      <span className="text-xs font-bold text-[var(--text-main)]">
+                        Windows 11 Desktop
+                      </span>
+                    </div>
+                    {settings.uiMode === 'windows11' && (
+                      <span className="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 text-[10px] font-semibold border border-sky-500/30">
+                        Active
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-[var(--text-dim)] leading-relaxed">
+                    Desktop environment with centered taskbar, start menu, draggable and resizable windows.
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    sounds.playClick(settings.soundEffectsEnabled);
+                    updateSetting('uiMode', 'classic');
+                  }}
+                  className={`p-4 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-2 ${
+                    settings.uiMode === 'classic'
+                      ? 'border-amber-500/80 bg-amber-500/10 ring-1 ring-amber-500/50'
+                      : 'border-[var(--border-color)] bg-[var(--bg-surface)] hover:bg-[var(--bg-hover)]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-[#202028] border border-white/10 flex items-center justify-center text-amber-400">
+                        <Layout className="w-4 h-4" />
+                      </div>
+                      <span className="text-xs font-bold text-[var(--text-main)]">
+                        Classic Web App (Old UI)
+                      </span>
+                    </div>
+                    {settings.uiMode === 'classic' && (
+                      <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-semibold border border-amber-500/30">
+                        Active
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-[var(--text-dim)] leading-relaxed">
+                    Streamlined web layout with bottom-left navigation bar, sound/clock screen, and direct full-screen views.
+                  </p>
+                </button>
+              </div>
+            </div>
+
             {/* Custom Accent Color Picker Section */}
             <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-4">
               <div className="flex items-center justify-between">

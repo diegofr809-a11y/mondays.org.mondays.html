@@ -198,7 +198,7 @@ export const GameGrid = ({
                     <img
                       src={game.thumbnailUrl}
                       alt={game.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover filter brightness-[0.92] contrast-[0.98] group-hover:brightness-100 transition-all"
                       loading="lazy"
                       referrerPolicy="no-referrer"
                       onError={(e) => {

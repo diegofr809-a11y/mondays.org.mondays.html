@@ -18,23 +18,63 @@
 
 @layer base {
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, sans-serif;
     background-color: var(--bg-base);
     color: var(--text-main);
-    overflow-x: hidden;
+    overflow: hidden;
     transition: background-color 0.2s ease, color 0.2s ease;
+    user-select: none;
+    -webkit-user-select: none;
   }
 
   code, kbd, pre {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-family: "Consolas", ui-monospace, SFMono-Regular, Menlo, Monaco, "Liberation Mono", monospace;
   }
+}
+
+/* Windows 11 Acrylic & Mica Materials */
+.win11-acrylic {
+  background-color: rgba(24, 24, 28, 0.85);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.win11-taskbar {
+  background-color: rgba(18, 18, 22, 0.88);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.win11-window {
+  background-color: rgba(24, 24, 28, 0.95);
+  backdrop-filter: blur(30px) saturate(150%);
+  -webkit-backdrop-filter: blur(30px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.win11-btn {
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.15s ease;
+}
+
+.win11-btn:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.win11-btn:active {
+  transform: scale(0.98);
 }
 
 /* Atmospheric glow background adapting to theme accent glow */
 .lucide-bg {
-  background-color: var(--bg-base);
+  background-color: transparent;
   background-image: 
-    radial-gradient(ellipse 75% 55% at 36% 12%, var(--accent-glow) 0%, rgba(15, 10, 30, 0.25) 42%, var(--bg-base) 78%);
+    radial-gradient(ellipse 75% 55% at 36% 12%, var(--accent-glow) 0%, rgba(15, 10, 30, 0.25) 42%, transparent 78%);
   background-repeat: no-repeat;
   background-attachment: fixed;
 }

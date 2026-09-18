@@ -1,6 +1,6 @@
 {
   "name": "grrmondays",
-  "description": "grrmondays gaming hub with over 1,900 unblocked games, proxy streaming, stealth tab cloaking, custom themes, and wallpapers.",
+  "description": "grrmondays gaming hub with over 1,900 games, stealth tab cloaking, custom themes, and wallpapers.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

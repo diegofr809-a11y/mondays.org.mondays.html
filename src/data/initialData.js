@@ -60,7 +60,8 @@ export const CLOAK_PRESETS = [
 ];
 
 export const DEFAULT_SETTINGS = {
-  theme: 'midnight',
+  theme: 'windows11',
+  uiMode: 'windows11', // 'windows11' or 'classic'
   wallpaper: 'none',
   customWallpaperUrl: '',
   customAccentColor: '',
@@ -78,7 +79,7 @@ export const DEFAULT_SETTINGS = {
   customCloakFavicon: '',
   panicKey: ']',
   panicUrl: 'https://classroom.google.com',
-  defaultSearchEngine: 'duckduckgo',
+  defaultSearchEngine: 'brave',
   proxyEngineMode: 'direct',
   // Audio & Sound Effects
   tedSoundEnabled: true,

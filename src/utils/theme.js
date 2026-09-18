@@ -1,4 +1,25 @@
 export const THEMES = {
+  windows11: {
+    id: 'windows11',
+    name: 'Windows 11 Dark',
+    description: 'Sleek dark acrylic with Windows 11 blue accents',
+    colors: {
+      bgBase: '#000000',
+      bgSurface: '#0d0d11',
+      bgCard: '#16161b',
+      bgHover: '#202028',
+      border: '#282832',
+      borderHover: '#0078d4',
+      accent: '#0078d4',
+      accentHover: '#2b88d8',
+      accentGlow: 'rgba(0, 120, 212, 0.35)',
+      textMain: '#ffffff',
+      textMuted: '#a1a1aa',
+      textDim: '#71717a',
+      badgeBg: 'rgba(0, 120, 212, 0.16)',
+    },
+    previewColors: ['#000000', '#0078d4', '#16161b'],
+  },
   midnight: {
     id: 'midnight',
     name: 'Midnight Dark',
@@ -440,6 +461,16 @@ export const CURSOR_PRESETS = [
   { id: 'glow', name: 'Neon Glow', description: 'Smooth glowing pointer' },
   { id: 'retro', name: 'Retro Pixel', description: 'Classic 8-bit arcade style arrow' },
   { id: 'sword', name: 'Knight Sword', description: 'Fantasy game dagger / blade pointer' },
+  { id: 'sniper', name: 'Precision Sniper', description: 'Mil-dot sniper rifle optics with red laser pinpoint' },
+  { id: 'energy', name: 'Plasma Energy Blade', description: 'Sci-fi dual glowing plasma energy prongs' },
+  { id: 'laser', name: 'Cyber Laser Pointer', description: 'Futuristic arrowhead with targeting bracket' },
+  { id: 'pickaxe', name: 'Diamond Pickaxe', description: 'Voxel 8-bit mining tool for arcade block builders' },
+  { id: 'wand', name: 'Magic Star Wand', description: 'Celestial wand casting glowing 4-point star sparkles' },
+  { id: 'radar', name: 'Sonar Radar', description: 'Military radar HUD with scanning green sweep' },
+  { id: 'scythe', name: 'Reaper Scythe', description: 'Curved obsidian soul blade with glowing edge' },
+  { id: 'gauntlet', name: 'Pixel Power Glove', description: 'Retro 8-bit pointing hand with gold wristband' },
+  { id: 'kunai', name: 'Shinobi Kunai', description: 'Japanese ninja throwing blade with ring grip' },
+  { id: 'target', name: 'Lock-On Bracket', description: 'Fighter jet HUD acquisition lock brackets' },
 ];
 
 export const WALLPAPER_CATEGORIES = [
@@ -449,10 +480,12 @@ export const WALLPAPER_CATEGORIES = [
   { id: 'space', name: 'Space & Nebula' },
   { id: 'retro', name: 'Retro & Pixel' },
   { id: 'nature', name: 'Nature & Landscape' },
+  { id: 'abstract', name: 'Abstract & 3D' },
   { id: 'custom', name: 'Custom Image URL' },
 ];
 
 export const WALLPAPERS = [
+  // Minimal & Grid (Instant pure CSS)
   {
     id: 'none',
     category: 'minimal',
@@ -464,53 +497,64 @@ export const WALLPAPERS = [
     id: 'neongrid',
     category: 'minimal',
     name: 'Cyber Neon Grid',
-    description: 'Futuristic glowing grid pattern on dark backdrop',
-    css: 'linear-gradient(to right, rgba(147,51,234,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(147,51,234,0.06) 1px, transparent 1px)',
+    description: 'Futuristic glowing coordinate grid pattern',
+    css: 'linear-gradient(to right, rgba(147,51,234,0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(147,51,234,0.08) 1px, transparent 1px)',
     size: '40px 40px',
   },
   {
     id: 'dots',
     category: 'minimal',
     name: 'Cosmic Dot Matrix',
-    description: 'Subtle stardust point pattern for a clean modern look',
-    css: 'radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px)',
+    description: 'Subtle stardust point matrix for a clean modern look',
+    css: 'radial-gradient(rgba(255,255,255,0.09) 1px, transparent 1px)',
     size: '24px 24px',
   },
+  {
+    id: 'diagonal',
+    category: 'minimal',
+    name: 'Stealth Diagonal Stripes',
+    description: 'Classic gaming diagonal carbon hatch texture',
+    css: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0, rgba(255,255,255,0.02) 10px, transparent 0, transparent 20px)',
+  },
+  {
+    id: 'matrix',
+    category: 'minimal',
+    name: 'Matrix Digital Code',
+    description: 'Subtle vertical digital matrix green terminal lines',
+    css: 'linear-gradient(to bottom, rgba(34,197,94,0.05) 1px, transparent 1px)',
+    size: '100% 28px',
+  },
+  {
+    id: 'hexgrid',
+    category: 'minimal',
+    name: 'Hexagonal Cyber Mesh',
+    description: 'Honeycomb polygon carbon mesh structure',
+    css: 'radial-gradient(circle at 50% 50%, rgba(147,51,234,0.06) 2px, transparent 3px), radial-gradient(circle at 0% 100%, rgba(59,130,246,0.06) 2px, transparent 3px)',
+    size: '32px 32px',
+  },
+  {
+    id: 'blueprint',
+    category: 'minimal',
+    name: 'Architectural Blueprint',
+    description: 'Technical engineering blueprint drafting grid',
+    css: 'linear-gradient(rgba(56,189,248,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(56,189,248,0.08) 1px, transparent 1px), linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px)',
+    size: '100px 100px, 100px 100px, 20px 20px, 20px 20px',
+  },
+
+  // Cyberpunk & Neon
   {
     id: 'aurora',
     category: 'neon',
     name: 'Aurora Glow',
-    description: 'Ethereal glowing aura orbs floating in the background',
-    css: 'radial-gradient(circle at 20% 20%, rgba(147,51,234,0.18) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(59,130,246,0.18) 0%, transparent 50%)',
-  },
-  {
-    id: 'diagonal',
-    category: 'retro',
-    name: 'Stealth Diagonal Stripes',
-    description: 'Classic gaming diagonal line hatch texture',
-    css: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0, rgba(255,255,255,0.02) 10px, transparent 0, transparent 20px)',
+    description: 'Ethereal glowing aura orbs floating in ambient space',
+    css: 'radial-gradient(circle at 20% 20%, rgba(147,51,234,0.22) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(59,130,246,0.22) 0%, transparent 50%)',
   },
   {
     id: 'cyberpunk',
     category: 'neon',
     name: 'Cyberpunk Neon Beam',
     description: 'Vibrant neon gradient sweep across the screen',
-    css: 'linear-gradient(135deg, rgba(250,204,21,0.08) 0%, rgba(56,189,248,0.08) 50%, rgba(236,72,153,0.08) 100%)',
-  },
-  {
-    id: 'matrix',
-    category: 'retro',
-    name: 'Matrix Digital Code',
-    description: 'Subtle vertical digital matrix lines',
-    css: 'linear-gradient(to bottom, rgba(34,197,94,0.04) 1px, transparent 1px)',
-    size: '100% 30px',
-  },
-  {
-    id: 'deepspace',
-    category: 'space',
-    name: 'Deep Space Galaxy',
-    description: 'Cosmic deep nebula view with star clusters',
-    imageUrl: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=1920&q=80',
+    css: 'linear-gradient(135deg, rgba(250,204,21,0.09) 0%, rgba(56,189,248,0.09) 50%, rgba(236,72,153,0.09) 100%)',
   },
   {
     id: 'cybercity',
@@ -520,12 +564,75 @@ export const WALLPAPERS = [
     imageUrl: 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=1920&q=80',
   },
   {
+    id: 'neonstreet',
+    category: 'neon',
+    name: 'Shinjuku Cyber Alley',
+    description: 'Atmospheric neon sign reflections along wet Tokyo streets',
+    imageUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=80',
+  },
+  {
+    id: 'cybercar',
+    category: 'neon',
+    name: 'Midnight Supercar Horizon',
+    description: 'Neon light trails on an empty midnight highway',
+    imageUrl: 'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?auto=format&fit=crop&w=1920&q=80',
+  },
+
+  // Space & Nebula
+  {
+    id: 'deepspace',
+    category: 'space',
+    name: 'Deep Space Galaxy',
+    description: 'Cosmic deep nebula view with dense star clusters',
+    imageUrl: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=1920&q=80',
+  },
+  {
+    id: 'violetnebula',
+    category: 'space',
+    name: 'Stellar Violet Nebula',
+    description: 'Swirling luminous cosmic dust and celestial starlight',
+    imageUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1920&q=80',
+  },
+  {
+    id: 'earthorbit',
+    category: 'space',
+    name: 'Earth from Orbit',
+    description: 'Majestic curve of planet Earth with atmospheric glow',
+    imageUrl: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=1920&q=80',
+  },
+  {
+    id: 'marsred',
+    category: 'space',
+    name: 'Martian Sunset Dunes',
+    description: 'Alien red planet sands stretching under a cosmic twilight',
+    imageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1920&q=80',
+  },
+
+  // Retro & Pixel
+  {
     id: 'retroarcade',
     category: 'retro',
     name: 'Synthwave Highway 80s',
     description: 'Retro 80s wireframe sunset road vanishing horizon',
     imageUrl: 'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=1920&q=80',
   },
+  {
+    id: 'arcaderoom',
+    category: 'retro',
+    name: 'Nostalgia Arcade Hall',
+    description: 'Glowing retro arcade cabinets in a moody 90s game room',
+    imageUrl: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1920&q=80',
+  },
+  {
+    id: 'synthgrid',
+    category: 'retro',
+    name: 'Outrun Perspective Grid',
+    description: 'Pure CSS 3D perspective floor grid vanishing into the horizon',
+    css: 'linear-gradient(to bottom, rgba(147,51,234,0.02) 0%, rgba(236,72,153,0.12) 100%), repeating-linear-gradient(to right, rgba(56,189,248,0.1) 0, rgba(56,189,248,0.1) 1px, transparent 1px, transparent 40px)',
+    size: '100% 100%',
+  },
+
+  // Nature & Landscapes
   {
     id: 'naturemountain',
     category: 'nature',
@@ -539,6 +646,50 @@ export const WALLPAPERS = [
     name: 'Kyoto Bamboo Forest',
     description: 'Peaceful zen forest with ambient sunlight filtering through',
     imageUrl: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=1920&q=80',
+  },
+  {
+    id: 'auroraborealis',
+    category: 'nature',
+    name: 'Arctic Aurora Borealis',
+    description: 'Luminous green northern lights dancing over frozen fjords',
+    imageUrl: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=1920&q=80',
+  },
+  {
+    id: 'twilightocean',
+    category: 'nature',
+    name: 'Deep Ocean Twilight',
+    description: 'Mysterious dark ocean tide with calming reflective ripples',
+    imageUrl: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=1920&q=80',
+  },
+  {
+    id: 'fujisakura',
+    category: 'nature',
+    name: 'Mount Fuji & Sakura',
+    description: 'Iconic snow-capped volcano framed by twilight cherry blossoms',
+    imageUrl: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1920&q=80',
+  },
+
+  // Abstract & 3D
+  {
+    id: 'darkwaves',
+    category: 'abstract',
+    name: 'Obsidian Silk Waves',
+    description: 'Smooth undulating liquid ripples in obsidian dark tones',
+    imageUrl: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=1920&q=80',
+  },
+  {
+    id: 'prisms',
+    category: 'abstract',
+    name: 'Prismatic Crystal Shards',
+    description: 'Geometric refracted light crystals on a dark backdrop',
+    imageUrl: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=1920&q=80',
+  },
+  {
+    id: 'quantumradial',
+    category: 'abstract',
+    name: 'Quantum Warp Core',
+    description: 'Hypnotic dark vortex radial aura radiating from the center',
+    css: 'radial-gradient(circle at center, rgba(147,51,234,0.18) 0%, rgba(59,130,246,0.12) 35%, transparent 70%)',
   },
 ];
 
@@ -591,6 +742,7 @@ export function svgToCursorDataUri(svgString) {
 export function getCursorSvg(cursorType, accentColor = '#9333ea') {
   const accent = accentColor || '#9333ea';
 
+  // 1. Tactical Crosshair
   if (cursorType === 'crosshair') {
     return {
       svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="${accent}" stroke-width="1.6" stroke-opacity="0.9"/><circle cx="12" cy="12" r="1.5" fill="#ffffff"/><line x1="12" y1="1" x2="12" y2="7" stroke="${accent}" stroke-width="1.8" stroke-linecap="round"/><line x1="12" y1="17" x2="12" y2="23" stroke="${accent}" stroke-width="1.8" stroke-linecap="round"/><line x1="1" y1="12" x2="7" y2="12" stroke="${accent}" stroke-width="1.8" stroke-linecap="round"/><line x1="17" y1="12" x2="23" y2="12" stroke="${accent}" stroke-width="1.8" stroke-linecap="round"/></svg>`,
@@ -600,6 +752,7 @@ export function getCursorSvg(cursorType, accentColor = '#9333ea') {
     };
   }
 
+  // 2. Minimalist Dot
   if (cursorType === 'dot') {
     return {
       svg: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="${accent}" fill-opacity="0.35"/><circle cx="10" cy="10" r="4.5" fill="${accent}" stroke="#ffffff" stroke-width="1.5"/><circle cx="10" cy="10" r="1.5" fill="#ffffff"/></svg>`,
@@ -609,6 +762,7 @@ export function getCursorSvg(cursorType, accentColor = '#9333ea') {
     };
   }
 
+  // 3. Neon Glow Arrow
   if (cursorType === 'glow') {
     return {
       svg: `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28"><path d="M4 2 L4 22 L9 17 L13 25 L16 23.5 L12 15.5 L19 15.5 Z" fill="${accent}" fill-opacity="0.45" stroke="${accent}" stroke-width="3" stroke-linejoin="round"/><path d="M4 2 L4 22 L9 17 L13 25 L16 23.5 L12 15.5 L19 15.5 Z" fill="${accent}" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/><circle cx="4" cy="2" r="1.5" fill="#ffffff"/></svg>`,
@@ -618,6 +772,7 @@ export function getCursorSvg(cursorType, accentColor = '#9333ea') {
     };
   }
 
+  // 4. Retro Pixel Arrow
   if (cursorType === 'retro') {
     return {
       svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" shape-rendering="crispEdges"><path d="M1 1v17h4v-3h2v3h2v2h2v-4h-2v-2h3v-2h-2v-2h-2v-2h-2V5h-2V3h-2V1H1z" fill="#000000"/><path d="M2 2v14h2v-3h2v-1h2v-2h2v-2h-2V6h-2V4h-2V2H2z" fill="${accent}"/><path d="M2 2v12h1V4h2V3h2V2H2z" fill="#ffffff"/></svg>`,
@@ -627,12 +782,113 @@ export function getCursorSvg(cursorType, accentColor = '#9333ea') {
     };
   }
 
+  // 5. Knight Sword
   if (cursorType === 'sword') {
     return {
       svg: `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28"><path d="M2 2 L13 9 L9 13 Z" fill="#ffffff" stroke="#000000" stroke-width="0.8"/><path d="M2 2 L9 13 L13 13 L13 9 Z" fill="${accent}" stroke="#000000" stroke-width="0.8"/><line x1="2" y1="2" x2="11" y2="11" stroke="#ffffff" stroke-width="1.2"/><rect x="8" y="14" width="9" height="3" rx="1" transform="rotate(-45 12.5 15.5)" fill="#facc15" stroke="#000000" stroke-width="0.8"/><line x1="14" y1="14" x2="20" y2="20" stroke="#92400e" stroke-width="3" stroke-linecap="round"/><line x1="15" y1="15" x2="19" y2="19" stroke="#fef08a" stroke-width="1"/><circle cx="21" cy="21" r="2.5" fill="#facc15" stroke="#000000" stroke-width="0.8"/><circle cx="2" cy="2" r="1.5" fill="#ffffff"/></svg>`,
       hotspotX: 2,
       hotspotY: 2,
       fallback: 'default',
+    };
+  }
+
+  // 6. Precision Sniper
+  if (cursorType === 'sniper') {
+    return {
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26"><circle cx="13" cy="13" r="11" fill="none" stroke="${accent}" stroke-width="1.6" stroke-opacity="0.9"/><circle cx="13" cy="13" r="6" fill="none" stroke="${accent}" stroke-width="1" stroke-dasharray="2 2" stroke-opacity="0.8"/><line x1="13" y1="0" x2="13" y2="9" stroke="${accent}" stroke-width="1.6"/><line x1="13" y1="17" x2="13" y2="26" stroke="${accent}" stroke-width="1.6"/><line x1="0" y1="13" x2="9" y2="13" stroke="${accent}" stroke-width="1.6"/><line x1="17" y1="13" x2="26" y2="13" stroke="${accent}" stroke-width="1.6"/><circle cx="13" cy="13" r="2" fill="#ef4444" stroke="#ffffff" stroke-width="0.8"/></svg>`,
+      hotspotX: 13,
+      hotspotY: 13,
+      fallback: 'crosshair',
+    };
+  }
+
+  // 7. Plasma Energy Blade
+  if (cursorType === 'energy') {
+    return {
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28"><path d="M3 3 C8 6 12 11 15 17 L12 18 C10 13 6 8 3 3 Z" fill="${accent}" stroke="#ffffff" stroke-width="0.8"/><path d="M3 3 C6 8 11 12 17 15 L18 12 C13 10 8 6 3 3 Z" fill="${accent}" stroke="#ffffff" stroke-width="0.8"/><path d="M12 18 L18 12 L24 22 L22 24 Z" fill="#1e293b" stroke="#475569" stroke-width="1"/><circle cx="3" cy="3" r="2" fill="#ffffff"/><line x1="7" y1="7" x2="14" y2="14" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round"/></svg>`,
+      hotspotX: 3,
+      hotspotY: 3,
+      fallback: 'default',
+    };
+  }
+
+  // 8. Cyber Laser Pointer
+  if (cursorType === 'laser') {
+    return {
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><polygon points="2,2 22,10 14,14 10,22" fill="${accent}" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/><polyline points="2,2 14,14" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/><polyline points="7,2 2,2 2,7" fill="none" stroke="${accent}" stroke-width="1.6"/><circle cx="2" cy="2" r="1.5" fill="#ffffff"/></svg>`,
+      hotspotX: 2,
+      hotspotY: 2,
+      fallback: 'default',
+    };
+  }
+
+  // 9. Diamond Pickaxe
+  if (cursorType === 'pickaxe') {
+    return {
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26" shape-rendering="crispEdges"><path d="M2 6 L6 2 L13 3 L9 8 L6 6 L3 10 Z" fill="#06b6d4" stroke="#083344" stroke-width="0.8"/><path d="M6 2 L15 4 L11 8 L7 5 Z" fill="#38bdf8"/><path d="M2 6 L4 15 L8 11 L5 7 Z" fill="#38bdf8"/><line x1="8" y1="8" x2="22" y2="22" stroke="#78350f" stroke-width="3.5" stroke-linecap="square"/><line x1="9" y1="9" x2="21" y2="21" stroke="#b45309" stroke-width="1.5"/><circle cx="2" cy="2" r="1.5" fill="#ffffff"/></svg>`,
+      hotspotX: 2,
+      hotspotY: 2,
+      fallback: 'default',
+    };
+  }
+
+  // 10. Magic Star Wand
+  if (cursorType === 'wand') {
+    return {
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26"><line x1="7" y1="7" x2="23" y2="23" stroke="#818cf8" stroke-width="2.5" stroke-linecap="round"/><line x1="16" y1="16" x2="23" y2="23" stroke="#facc15" stroke-width="3" stroke-linecap="round"/><polygon points="4,0 6,4 10,6 6,8 4,12 2,8 -2,6 2,4" transform="translate(3, 0)" fill="#facc15" stroke="${accent}" stroke-width="0.8"/><circle cx="7" cy="6" r="1.5" fill="#ffffff"/><circle cx="12" cy="2" r="1" fill="#fde047"/><circle cx="2" cy="12" r="1" fill="#fde047"/></svg>`,
+      hotspotX: 7,
+      hotspotY: 6,
+      fallback: 'default',
+    };
+  }
+
+  // 11. Sonar Radar
+  if (cursorType === 'radar') {
+    return {
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="${accent}" stroke-width="1.5"/><circle cx="12" cy="12" r="5" fill="none" stroke="${accent}" stroke-width="1" stroke-opacity="0.6"/><line x1="12" y1="2" x2="12" y2="22" stroke="${accent}" stroke-width="1.2"/><line x1="2" y1="12" x2="22" y2="12" stroke="${accent}" stroke-width="1.2"/><path d="M12 12 L19 5" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="2" fill="#22c55e"/></svg>`,
+      hotspotX: 12,
+      hotspotY: 12,
+      fallback: 'crosshair',
+    };
+  }
+
+  // 12. Reaper Scythe
+  if (cursorType === 'scythe') {
+    return {
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28"><path d="M3 3 C10 1 20 5 22 14 C19 11 13 9 7 11 Z" fill="${accent}" stroke="#ffffff" stroke-width="1"/><path d="M3 3 C7 2 15 5 18 11 Z" fill="#ffffff"/><line x1="7" y1="10" x2="24" y2="26" stroke="#475569" stroke-width="2.5" stroke-linecap="round"/><line x1="16" y1="18" x2="24" y2="26" stroke="#1e293b" stroke-width="3.2" stroke-linecap="round"/><circle cx="3" cy="3" r="1.5" fill="#ffffff"/></svg>`,
+      hotspotX: 3,
+      hotspotY: 3,
+      fallback: 'default',
+    };
+  }
+
+  // 13. Pixel Power Glove
+  if (cursorType === 'gauntlet') {
+    return {
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" shape-rendering="crispEdges"><path d="M7 1h3v8h-3z" fill="${accent}"/><path d="M10 5h3v7h-3z" fill="${accent}"/><path d="M13 7h3v6h-3z" fill="${accent}"/><path d="M4 9h3v6h-3z" fill="${accent}"/><path d="M4 15h12v4H4z" fill="#000000"/><path d="M5 16h10v2H5z" fill="#facc15"/><path d="M6 0h5v1H6zM6 1h1v8H6zM10 1h1v4h-1zM13 5h1v2h-1zM16 7h1v7h-1zM3 9h1v6H3zM3 15h1v5H3zM16 14h1v6h-1zM4 20h12v1H4z" fill="#ffffff"/><circle cx="8" cy="2" r="1.5" fill="#ffffff"/></svg>`,
+      hotspotX: 8,
+      hotspotY: 2,
+      fallback: 'default',
+    };
+  }
+
+  // 14. Shinobi Kunai
+  if (cursorType === 'kunai') {
+    return {
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26"><path d="M2 2 L12 6 L6 12 Z" fill="#e2e8f0" stroke="#0f172a" stroke-width="0.8"/><path d="M2 2 L6 12 L7 11 L11 7 L12 6 Z" fill="${accent}" stroke="#0f172a" stroke-width="0.8"/><line x1="2" y1="2" x2="8" y2="8" stroke="#ffffff" stroke-width="1.2"/><line x1="8" y1="8" x2="18" y2="18" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/><circle cx="21" cy="21" r="3" fill="none" stroke="#64748b" stroke-width="2"/><circle cx="2" cy="2" r="1.5" fill="#ffffff"/></svg>`,
+      hotspotX: 2,
+      hotspotY: 2,
+      fallback: 'default',
+    };
+  }
+
+  // 15. Lock-On Bracket
+  if (cursorType === 'target') {
+    return {
+      svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M2 7 V2 H7" fill="none" stroke="${accent}" stroke-width="2"/><path d="M17 2 H22 V7" fill="none" stroke="${accent}" stroke-width="2"/><path d="M22 17 V22 H17" fill="none" stroke="${accent}" stroke-width="2"/><path d="M7 22 H2 V17" fill="none" stroke="${accent}" stroke-width="2"/><line x1="12" y1="7" x2="12" y2="10" stroke="#ef4444" stroke-width="1.8"/><line x1="12" y1="14" x2="12" y2="17" stroke="#ef4444" stroke-width="1.8"/><line x1="7" y1="12" x2="10" y2="12" stroke="#ef4444" stroke-width="1.8"/><line x1="14" y1="12" x2="17" y2="12" stroke="#ef4444" stroke-width="1.8"/><circle cx="12" cy="12" r="1.5" fill="#ef4444"/></svg>`,
+      hotspotX: 12,
+      hotspotY: 12,
+      fallback: 'crosshair',
     };
   }
 
@@ -650,13 +906,26 @@ export function applyCursor(cursorType, accentColor = '#9333ea') {
 
   if (!cursorType || cursorType === 'default') {
     el.innerHTML = '';
+    try {
+      document.documentElement.style.removeProperty('cursor');
+      document.body.style.removeProperty('cursor');
+    } catch {
+      // ignore
+    }
     return;
   }
 
   const cursorData = getCursorSvg(cursorType, accentColor);
   if (!cursorData) {
     if (cursorType === 'crosshair') {
-      el.innerHTML = `html, body, *, button, a, input, select, textarea { cursor: crosshair !important; }`;
+      const fallbackRule = `html, body, *, *::before, *::after, button, a, input, select, textarea, [role="button"], button:hover, a:hover, *:hover { cursor: crosshair !important; }`;
+      el.innerHTML = fallbackRule;
+      try {
+        document.documentElement.style.cursor = 'crosshair';
+        document.body.style.cursor = 'crosshair';
+      } catch {
+        // ignore
+      }
     } else {
       el.innerHTML = '';
     }
@@ -664,6 +933,23 @@ export function applyCursor(cursorType, accentColor = '#9333ea') {
   }
 
   const cursorUri = svgToCursorDataUri(cursorData.svg);
-  el.innerHTML = `html, body, *, button, a, input, select, textarea { cursor: ${cursorUri} ${cursorData.hotspotX} ${cursorData.hotspotY}, ${cursorData.fallback} !important; }`;
+  const fallbackUri = `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(cursorData.svg.trim())}")`;
+  const cursorCssVal = `${cursorUri} ${cursorData.hotspotX} ${cursorData.hotspotY}, ${fallbackUri} ${cursorData.hotspotX} ${cursorData.hotspotY}, ${cursorData.fallback}`;
+
+  // Complete selector ensuring the custom cursor applies universally across all elements, inputs, buttons and pseudo-classes
+  el.innerHTML = `
+    html, body, *, *::before, *::after,
+    button, a, input, select, textarea, [role="button"],
+    button:hover, a:hover, *:hover, *:active {
+      cursor: ${cursorCssVal} !important;
+    }
+  `;
+
+  try {
+    document.documentElement.style.setProperty('cursor', cursorCssVal, 'important');
+    document.body.style.setProperty('cursor', cursorCssVal, 'important');
+  } catch {
+    // ignore
+  }
 }
 

@@ -36,7 +36,7 @@ export const LucideMainView = ({ settings = {}, onOpenSettings }) => {
 
   return (
     <main
-      className={`flex-1 h-full overflow-y-auto flex flex-col items-center p-6 select-none relative bg-[var(--bg-base)] transition-all duration-300 ${
+      className={`flex-1 h-full overflow-y-auto flex flex-col items-center p-6 select-none relative bg-transparent transition-all duration-300 ${
         showClock ? 'justify-start pt-12 sm:pt-16' : 'justify-center'
       }`}
     >

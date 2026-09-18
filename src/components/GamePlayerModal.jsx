@@ -20,6 +20,8 @@ export const GamePlayerModal = ({
   onClose,
   onToggleFavorite,
   onRecordPlay,
+  isMinimized = false,
+  onMinimize,
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [playSeconds, setPlaySeconds] = useState(0);
@@ -98,56 +100,47 @@ export const GamePlayerModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-xs select-none">
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-sm select-none transition-all duration-200 ${
+        isMinimized ? 'opacity-0 pointer-events-none scale-90 translate-y-12' : 'opacity-100 scale-100'
+      }`}
+    >
       <div
         ref={containerRef}
-        className={`bg-[#0e0b1c] border border-[#251f3b] rounded-xl overflow-hidden shadow-2xl flex flex-col transition-all ${
+        className={`bg-[#18181e]/95 backdrop-blur-2xl border border-white/15 rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl flex flex-col transition-all duration-200 ${
           isFullscreen
             ? 'fixed inset-0 z-50 rounded-none border-none h-screen'
-            : 'w-full max-w-5xl h-[85vh] max-h-[820px]'
+            : 'w-full max-w-5xl h-[86vh] max-h-[840px]'
         }`}
       >
-        {/* Game Titlebar & Controls */}
-        <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 bg-[#120e24] border-b border-[#231c3a] text-xs shrink-0">
+        {/* Windows 11 Titlebar & Controls */}
+        <div className="flex items-center justify-between px-3 sm:px-4 h-10 bg-[#1e1e24]/90 border-b border-white/10 text-xs shrink-0 select-none">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-7 h-7 rounded-lg bg-[#1e1738] border border-[#302559] flex items-center justify-center text-purple-400 shrink-0">
-              <Gamepad2 className="w-4 h-4" />
+            <div className="w-6 h-6 rounded-md bg-[var(--accent-color)]/20 border border-[var(--accent-color)]/30 flex items-center justify-center text-[var(--accent-color)] shrink-0">
+              <Gamepad2 className="w-3.5 h-3.5" />
             </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="font-bold text-white text-xs truncate max-w-[140px] sm:max-w-[260px]">
-                  {game.title}
-                </h3>
-                <span className="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded bg-[#1e1738] text-purple-300 border border-[#302559] hidden sm:inline-block">
-                  {game.category}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 text-[10px] text-[#6d668b]">
-                <span className="flex items-center gap-1 font-mono">
-                  <Clock className="w-2.5 h-2.5 text-purple-400" />
-                  {formatTime(playSeconds)}
-                </span>
-                <span>•</span>
-                <span className="flex items-center gap-1 text-emerald-400/90">
-                  <ShieldCheck className="w-3 h-3" />
-                  Sanitized Player
-                </span>
-                <span className="hidden md:inline">•</span>
-                <span className="text-[#8e85a6] hidden md:inline" title="Notice: Some games may be restricted by strict network firewalls">
-                  Note: If game doesn't load, try Cloak Popout
-                </span>
-              </div>
+            <div className="min-w-0 flex items-center gap-2">
+              <h3 className="font-semibold text-white text-xs truncate max-w-[140px] sm:max-w-[260px]">
+                {game.title}
+              </h3>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-zinc-300 font-medium hidden sm:inline-block">
+                {game.category}
+              </span>
+              <span className="flex items-center gap-1 font-mono text-[11px] text-zinc-400 hidden md:flex">
+                <Clock className="w-3 h-3 text-sky-400" />
+                {formatTime(playSeconds)}
+              </span>
             </div>
           </div>
 
-          {/* Action buttons */}
-          <div className="flex items-center gap-1.5">
+          {/* Action buttons & Windows 11 Window Controls */}
+          <div className="flex items-center gap-1">
             <button
               onClick={() => onToggleFavorite(game.id)}
-              className={`p-1.5 rounded-md border transition-colors ${
+              className={`p-1.5 rounded-md transition-colors ${
                 game.isFavorite
-                  ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
-                  : 'bg-[#17122c] text-[#867fa2] hover:text-white border-[#282044]'
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                  : 'text-zinc-400 hover:text-white hover:bg-white/10'
               }`}
               title="Favorite game"
             >
@@ -156,15 +149,15 @@ export const GamePlayerModal = ({
 
             <button
               onClick={handleReload}
-              className="p-1.5 rounded-md bg-[#17122c] text-[#867fa2] hover:text-white border border-[#282044] transition-colors"
+              className="p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
               title="Reload frame"
             >
-              <RotateCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-purple-400' : ''}`} />
+              <RotateCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-sky-400' : ''}`} />
             </button>
 
             <button
               onClick={handleOpenDirect}
-              className="p-1.5 rounded-md bg-[#17122c] text-[#867fa2] hover:text-white border border-[#282044] transition-colors hidden sm:flex items-center gap-1"
+              className="p-1.5 rounded-md text-zinc-400 hover:text-white hover:bg-white/10 transition-colors hidden sm:flex items-center gap-1"
               title="Open direct URL in new tab"
             >
               <Share2 className="w-3.5 h-3.5" />
@@ -172,10 +165,10 @@ export const GamePlayerModal = ({
 
             <button
               onClick={handleCloakedPopout}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-semibold text-xs shadow-md transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-semibold text-xs shadow-md transition-all ${
                 popoutSuccess
                   ? 'bg-emerald-600 text-white'
-                  : 'bg-purple-600 hover:bg-purple-500 text-white'
+                  : 'bg-sky-600 hover:bg-sky-500 text-white'
               }`}
               title="Open inside an unblocked stealth tab"
             >
@@ -185,20 +178,33 @@ export const GamePlayerModal = ({
               </span>
             </button>
 
+            <div className="w-[1px] h-4 bg-white/15 mx-1 hidden sm:block" />
+
+            {/* Windows 11 Window Controls */}
+            {onMinimize && (
+              <button
+                onClick={onMinimize}
+                title="Minimize"
+                className="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 rounded transition-colors"
+              >
+                <span className="text-sm leading-none font-bold">−</span>
+              </button>
+            )}
+
             <button
               onClick={() => setIsFullscreen(!isFullscreen)}
-              className="p-1.5 rounded-md bg-[#17122c] text-[#867fa2] hover:text-white border border-[#282044] transition-colors"
-              title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+              className="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 rounded transition-colors"
+              title={isFullscreen ? 'Exit Fullscreen' : 'Maximize'}
             >
               {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
             </button>
 
             <button
               onClick={onClose}
-              className="p-1.5 rounded-md bg-red-950/40 hover:bg-red-900/60 text-red-400 border border-red-800/40 transition-colors ml-1"
+              className="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-[#e81123] rounded transition-colors"
               title="Close game"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
